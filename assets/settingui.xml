@@ -1,0 +1,13 @@
+<tinui>
+<line pady='15'>
+	<line y='50' padx='20' anchor='w'>
+		<image imgfile='./assets/logo-small.png'></image>
+		<title text='快日记 | KuaiDiary'></title>
+		<paragraph text='%VERSION%'></paragraph>
+	</line>
+	<line padx='20'>
+		<link text='GitHub' command='self.funcs["open_github"]'></link>
+		<link text='Gitee' command='self.funcs["open_gitee"]'></link>
+	</line>
+</line>
+</tinui>
