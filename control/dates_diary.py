@@ -29,3 +29,4 @@ def save_one_diary():
     context = text.get("1.0", "end")[:-1]
     nowday.update_contents(context)
     save_diary(nowday)
+    text.edit_modified(False)

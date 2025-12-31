@@ -30,3 +30,4 @@ def save_context():
         save_today_diary(today)
     else:
         delete_today_diary()
+    text.edit_modified(False)

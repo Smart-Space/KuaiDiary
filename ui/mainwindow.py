@@ -5,7 +5,7 @@ from tkinter import Tk
 
 from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel
 from tinui.theme.tinuilight import TinUILight
-from tinui.theme.tinuidark import TinUIDark
+# from tinui.theme.tinuidark import TinUIDark
 
 from ui.today import TodayView
 from ui.dates import DatesView
@@ -31,9 +31,15 @@ class MainWindow(Tk):
 
         self.root = ExpandPanel(self.ui_, padding=(5,5,5,5))
         
-        hp1 = HorizonPanel(self.ui_)
+        hp1 = HorizonPanel(self.ui_, spacing=2)
         self.root.set_child(hp1)
-        self.nav = self.ui.add_navigation((0,0), maxwidth=100, content=(('\uE929','今日'),('\uE787','往昔'),('\uE713','设置')), command=self.change_view)
+        nav_content = (
+            ('\uE929','今日'),
+            ('\uE787','往昔'),
+            # ('\uEDE1','导出'),
+            ('\uE713','设置')
+        )
+        self.nav = self.ui.add_navigation((0,0), maxwidth=100, content=nav_content, command=self.change_view)
         hp1.add_child(self.nav[-1])
 
         ep = ExpandPanel(self.ui_)

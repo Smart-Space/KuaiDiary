@@ -3,7 +3,7 @@ KuaiDiary数据
 """
 from tkinter import Tk
 
-version:str = "0.1.0" # 版本号
+version:str = "0.2.0" # 版本号
 
 root:Tk = None # 主窗口
 

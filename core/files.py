@@ -3,6 +3,7 @@
 """
 import os
 import datetime
+from tkinter.filedialog import asksaveasfilename
 
 import data
 from data import work_dir, setting_dir
@@ -103,3 +104,32 @@ def load_diary(date:datetime.date) -> Diary:
     diary = Diary(date)
     diary.update_contents(contents)
     return diary
+
+def export_month(month:str, format:str="\n{year}-{month}-{day}\n{content}\n", separator:str="==========") -> str:
+    """
+    导出月份
+    """
+    month_dir = os.path.join(work_dir, month)
+    if not os.path.exists(month_dir):
+        return ""
+    results = []
+    files = os.listdir(month_dir)
+    if len(files) == 0:
+        return ""
+    files.sort(key=lambda x: int(x))
+    year, month = month.split("-")
+    for file_name in files:
+        file_path = os.path.join(month_dir, file_name)
+        if os.path.isfile(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                contents = f.read()
+            result = format.replace('{year}', year).replace('{month}', month).replace('{day}', file_name).replace('{content}', contents)
+            results.append(result)
+    return separator+separator.join(results)+separator
+
+def export_month_to_file(month:str, content:str):
+    file = asksaveasfilename(defaultextension=".txt", filetypes=[("Text File", "*.txt")], initialfile=f"{month}.txt", title=f"保存{month}月份日记")
+    if not file:
+        return
+    with open(file, "w", encoding="utf-8") as f:
+        f.write(content)

@@ -3,13 +3,14 @@
 """
 from tkinter import Text
 
-from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel
+from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel, show_error
 from tinui.theme.tinuilight import TinUILight
-from tinui.theme.tinuidark import TinUIDark
+# from tinui.theme.tinuidark import TinUIDark
 
 import data
 from control.dates_diary import reg_ui, load_one_diary, save_one_diary
 from control.editor import editorabel
+from core.files import export_month, export_month_to_file
 
 
 class DatesView(BasicTinUI):
@@ -40,15 +41,19 @@ class DatesView(BasicTinUI):
         treev = self.ui.add_treeview((0,0), content=self.data, command=self.on_select)
         ep.set_child(treev[-1])
         self.tvitems = treev[0]
-        self.tv:BasicTinUI = treev[-2]
+        self.tv:BasicTinUI = treev[2]
+        tvfuncs = treev[-2]
+        tvfuncs.close_all()
 
-        vp = VerticalPanel(self, spacing=10, bg='#F9F9F9', bd=17, padding=(4,4,4,4))
+        vp = VerticalPanel(self, spacing=5, bg='#F9F9F9', bd=17, padding=(4,4,4,4))
         hp.add_child(vp, weight=1)
-        hp2 = HorizonPanel(self, spacing=5)
+        hp2 = HorizonPanel(self, spacing=5, padding=(0,2,0,0))
         vp.add_child(hp2, 30)
         self.title = self.ui.add_title((0, 0), text='过往日记修改', anchor='w')
         hp2.add_child(self.title, weight=1)
-        # hp2.add_child(self.ui.add_button2((0,0), text='保存', anchor='w')[-1], 50)
+        hp2.add_child(self.ui.add_button2((0,0), text='导出该月', command=self.save_selected_month, anchor='w')[-1])
+        self.clip_button = self.ui.add_toolbutton((0,0), icon='\uE8C8', text='', font=('{Segoe Fluent Icons}', 14), bg='#F9F9F9', line='#F9F9F9', command=self.save_this_month_clipboard, anchor='w')[-1]
+        hp2.add_child(self.clip_button)
 
         ep2 = ExpandPanel(self)
         vp.add_child(ep2, weight=1)
@@ -64,6 +69,7 @@ class DatesView(BasicTinUI):
         self.root.update_layout(event.x, event.y, event.width-1, event.height-1)
     
     def on_select(self, d):
+        self.tree_val = d
         if len(d) == 2:
             monthi, datei = d
             month = self.tv.itemcget(self.tvitems[monthi][0], 'text')
@@ -79,3 +85,30 @@ class DatesView(BasicTinUI):
     def save_log(self):
         if self.diary:
             save_one_diary()
+    
+    def save_selected_month(self, _):
+        self.save_log()
+        if self.diary:
+            month = '-'.join(self.diary.split('-')[:2])
+            content = export_month(month)
+            if not content:
+                show_error(self.master, '无法导出', '该月没有日志。')
+                return
+            export_month_to_file(month, content)
+        else:
+            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。")
+    
+    def save_this_month_clipboard(self, _):
+        self.save_log()
+        if self.diary:
+            month = '-'.join(self.diary.split('-')[:2])
+            content = export_month(month)
+            if not content:
+                show_error(self.master, '无法导出', '该月没有日志。')
+                return
+            self.clipboard_clear()
+            self.itemconfig(self.clip_button+'icon', text='\uE73E')
+            self.clipboard_append(content)
+            self.after(1000, lambda: self.itemconfig(self.clip_button+'icon', text='\uE8C8'))
+        else:
+            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。")
