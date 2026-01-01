@@ -28,7 +28,10 @@ class DatesView(BasicTinUI):
         else:
             self.data = []
             for k, v in data.months.items():
-                self.data.append((k, v))
+                if v:
+                    self.data.append((k, v))
+                else:
+                    self.data.append(k)
     
     def init_ui(self):
         self.root = ExpandPanel(self)

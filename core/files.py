@@ -118,12 +118,14 @@ def export_month(month:str, format:str="\n{year}-{month}-{day}\n{content}\n", se
         return ""
     files.sort(key=lambda x: int(x))
     year, month = month.split("-")
+    _month = month.lstrip("0")
     for file_name in files:
+        _day = file_name.lstrip("0")
         file_path = os.path.join(month_dir, file_name)
         if os.path.isfile(file_path):
             with open(file_path, "r", encoding="utf-8") as f:
                 contents = f.read()
-            result = format.replace('{year}', year).replace('{month}', month).replace('{day}', file_name).replace('{content}', contents)
+            result = format.replace('{year}', year).replace('{month}', month).replace('{-month}', _month).replace('{day}', file_name).replace('{-day}', _day).replace('{content}', contents)
             results.append(result)
     return separator+separator.join(results)+separator
 
