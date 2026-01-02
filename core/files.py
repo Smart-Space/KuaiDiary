@@ -6,22 +6,22 @@ import datetime
 from tkinter.filedialog import asksaveasfilename
 
 import data
-from data import work_dir, setting_dir
+from data import setting_dir
 from core.diary import Diary
 
 def init_work_dir():
     """
     初始化工作目录
     """
-    if not os.path.exists(work_dir):
-        os.makedirs(work_dir)
+    if not os.path.exists(data.work_dir):
+        os.makedirs(data.work_dir)
     else:
         # 遍历各个子文件夹，获取文件夹名，在获取其下所有文件名
         months:dict = {}
         now_month = datetime.date.today().strftime("%Y-%m")
         now_day = datetime.date.today().strftime("%d")
-        for file_name in os.listdir(work_dir):
-            file_path = os.path.join(work_dir, file_name)
+        for file_name in os.listdir(data.work_dir):
+            file_path = os.path.join(data.work_dir, file_name)
             if os.path.isdir(file_path):
                 files = []
                 for file in os.listdir(file_path):
@@ -39,7 +39,7 @@ def save_today_diary(diary:Diary):
     保存当天日记
     """
     month = diary.date.strftime("%Y-%m")
-    month_dir = os.path.join(work_dir, month)
+    month_dir = os.path.join(data.work_dir, month)
     if not os.path.exists(month_dir):
         os.makedirs(month_dir)
     file_name = diary.date.strftime("%d")
@@ -52,7 +52,7 @@ def delete_today_diary():
     删除当天日记
     """
     month = datetime.date.today().strftime("%Y-%m")
-    month_dir = os.path.join(work_dir, month)
+    month_dir = os.path.join(data.work_dir, month)
     if not os.path.exists(month_dir):
         return
     file_name = datetime.date.today().strftime("%d")
@@ -70,7 +70,7 @@ def save_diary(diary:Diary):
     """
     month_dir = diary.date.strftime("%Y-%m")
     file_name = diary.date.strftime("%d")
-    file_path = os.path.join(work_dir, month_dir, file_name)
+    file_path = os.path.join(data.work_dir, month_dir, file_name)
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(diary.contents)
 
@@ -79,7 +79,7 @@ def load_today_diary() -> Diary:
     读取当天日记
     """
     month = datetime.date.today().strftime("%Y-%m")
-    month_dir = os.path.join(work_dir, month)
+    month_dir = os.path.join(data.work_dir, month)
     if not os.path.exists(month_dir):
         return Diary(datetime.date.today())
     file_name = datetime.date.today().strftime("%d")
@@ -98,18 +98,20 @@ def load_diary(date:datetime.date) -> Diary:
     """
     month_dir = date.strftime("%Y-%m")
     file_name = date.strftime("%d")
-    file_path = os.path.join(work_dir, month_dir, file_name)
+    file_path = os.path.join(data.work_dir, month_dir, file_name)
     with open(file_path, "r", encoding="utf-8") as f:
         contents = f.read()
     diary = Diary(date)
     diary.update_contents(contents)
     return diary
 
-def export_month(month:str, format:str="\n{year}-{month}-{day}\n{content}\n", separator:str="==========") -> str:
+def export_month(month:str) -> str:
     """
     导出月份
     """
-    month_dir = os.path.join(work_dir, month)
+    format = data.settings.get("format_content", "\n{year}-{month}-{day}\n{content}\n")
+    separator = data.settings.get("format_sep", "==========")
+    month_dir = os.path.join(data.work_dir, month)
     if not os.path.exists(month_dir):
         return ""
     results = []

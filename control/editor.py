@@ -7,7 +7,7 @@ import tkinter.font as tkfont
 def editorabel(text:Text):
     font = tkfont.Font(font=text.cget("font"))
     font_size = font.measure("    ")
-    text.config(tabs=font_size, undo=True, maxundo=100, autoseparators=False, wrap="word")
+    text.config(tabs=font_size, undo=True, maxundo=100, autoseparators=False, wrap="word", spacing1=4, spacing3=4)
     text.bind("<Control-z>", __editor_undo)
     text.bind("<Control-y>", __editor_redo)
     text.bind("<Key>", __editor_input)

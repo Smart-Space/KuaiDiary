@@ -1,5 +1,5 @@
 <tinui>
-<line pady='15'>
+<line pady='30'>
 	<line y='50' padx='20' anchor='w'>
 		<image imgfile='./assets/logo-small.png'></image>
 		<title text='快日记 | KuaiDiary'></title>
@@ -8,6 +8,31 @@
 	<line padx='20'>
 		<link text='GitHub' command='self.funcs["open_github"]'></link>
 		<link text='Gitee' command='self.funcs["open_gitee"]'></link>
+	</line>
+	<line>
+		<line pady='10'><title text='存储设置' size='2'></title></line>
+		<line anchor='w' lineanchor='nw' pady='10'>
+			<paragraph text='存储位置'></paragraph>
+			<entry width="300">st_entry</entry>
+			<button2 icon='&#xE712;' text='' command='self.funcs["select_storage_path"]'></button2>
+			<toolbutton text='' icon='&#xE8DA;' command='self.funcs["open_storage_path"]'></toolbutton>
+		</line>
+	</line>
+	<line>
+		<line pady='10'>
+			<title text='导出设置' size='2'></title>
+			<button text='应用更改' command='self.funcs["apply_export_setting"]'></button>
+			<toolbutton text='' icon='&#xE897;' command='self.funcs["about_export_setting"]'></toolbutton>
+		</line>
+		<line pady='10'>
+			<paragraph text='导出内容'></paragraph>
+			<textbox width="225">fm_textbox</textbox>
+			<paragraph text=''>fm_string</paragraph>
+		</line>
+		<line anchor='w' lineanchor='nw'>
+			<paragraph text='日记分隔'></paragraph>
+			<entry width="200">fm_entry</entry>
+		</line>
 	</line>
 </line>
 </tinui>

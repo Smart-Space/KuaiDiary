@@ -26,7 +26,7 @@ def load_one_diary(date:str):
 def save_one_diary():
     if not text.edit_modified():
         return
-    context = text.get("1.0", "end")[:-1]
+    context = text.get("1.0", "end-1c")
     nowday.update_contents(context)
     save_diary(nowday)
     text.edit_modified(False)

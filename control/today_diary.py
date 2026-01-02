@@ -24,7 +24,7 @@ def load_context():
 def save_context():
     if not text.edit_modified():
         return
-    context = text.get('1.0', 'end')[:-1] # 去掉文本框末尾换行
+    context = text.get('1.0', 'end-1c') # 去掉文本框末尾换行
     if context:
         today.update_contents(context)
         save_today_diary(today)

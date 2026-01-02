@@ -2,12 +2,16 @@
 设置界面
 """
 import webbrowser
+from tkinter import Text, Entry
+from tkinter.filedialog import askdirectory
 
-from tinui import BasicTinUI, TinUIXml
+from tinui import BasicTinUI, TinUIXml, show_info
 from tinui.theme.tinuilight import TinUILight
 # from tinui.theme.tinuidark import TinUIDark
 
 import data
+from core.settings import save_settings
+from control.settings import open_folder, copy_to
 
 
 class SettingView(BasicTinUI):
@@ -31,12 +35,68 @@ class SettingView(BasicTinUI):
     def init_ui(self):
         self.uixml.funcs['open_github'] = self.open_github
         self.uixml.funcs['open_gitee'] = self.open_gitee
+        self.uixml.funcs['apply_export_setting'] = self.apply_export_setting
+        self.uixml.funcs['about_export_setting'] = self.about_export_setting
+        self.uixml.funcs['select_storage_path'] = self.select_storage_path
+        self.uixml.funcs['open_storage_path'] = self.open_storage_path
         with open("./assets/settingui.xml", "r", encoding="utf-8") as f:
             xml = f.read().replace("%VERSION%", data.version)
         self.uixml.loadxml(xml)
+        self.st_entry:Entry = self.uixml.tags['st_entry'][0]
+        st_entry_func = self.uixml.tags['st_entry'][1]
+        st_entry_func.disable()
+        self.st_entry.config(state="normal", readonlybackground='#F5F5F5')
+        self.st_entry.insert(0, data.work_dir)
+        self.st_entry.config(state="readonly")
+        self.fm_text:Text = self.uixml.tags['fm_textbox'][0]
+        self.fm_entry:Entry = self.uixml.tags['fm_entry'][0]
+        self.fm_string = self.uixml.tags['fm_string']
+        self.fm_text.insert(1.0, data.settings.get("format_content", ""))
+        self.fm_entry.insert(0, data.settings.get("format_sep", ""))
+        self.preview_export_format()
     
     def open_github(self, _):
         webbrowser.open("https://github.com/Smart-Space/KuaiDiary")
     
     def open_gitee(self, _):
         webbrowser.open("https://gitee.com/captorking/KuaiDiary")
+    
+    def about_export_setting(self, _):
+        show_info(self.master, "导出设置说明", "导出内容为每篇日记导出的文本格式，有如下特殊转义文本：\n" \
+        "· {year} 年 {month} 月 {day} 日\n" \
+        "· {-month}\t无补零月\n" \
+        "· {-day}\t\t无补零日\n" \
+        "· {content}\t日记内容\n\n" \
+        "日记分隔为每篇日记的分隔符，且会出现在全部日记的首尾。")
+    
+    def apply_export_setting(self, _):
+        content, sep = self.preview_export_format()
+        data.settings["format_content"] = content
+        data.settings["format_sep"] = sep
+        save_settings()
+    
+    def preview_export_format(self):
+        # 预览导出格式
+        content = self.fm_text.get(1.0, "end-1c")
+        sep = self.fm_entry.get()
+        _content = content.replace("{year}", "2026").replace("{month}", "01").replace("{day}", "01").replace("{-month}", "1").replace("{-day}", "1").replace("{content}", "日记内容")
+        self.itemconfig(self.fm_string, text=f"格式预览：\n{sep}{_content}{sep}")
+        return content, sep
+
+    def select_storage_path(self, _):
+        new_path = askdirectory(initialdir=data.work_dir, title="选择存储目录")
+        if not new_path:
+            return
+        data.settings["storage_path"] = new_path
+        self.st_entry.config(state="normal")
+        self.st_entry.delete(0, "end")
+        self.st_entry.insert(0, new_path)
+        self.st_entry.config(state="readonly")
+        save_settings()
+        # 迁移原目录下的所有文件
+        copy_to(data.work_dir, new_path)
+        # 更新文件目录
+        data.work_dir = new_path
+    
+    def open_storage_path(self, _):
+        open_folder(data.work_dir)
