@@ -67,17 +67,9 @@ class MainWindow(Tk):
         self.dates_view = DatesView(self.child[0], self.theme)
         self.setting_view = SettingView(self.child[0], self.theme)
         self.now_view.pack(fill="both", expand=True)
-
-        self.protocol("WM_DELETE_WINDOW", self.mw_log_resize)
     
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width, event.height)
-    
-    def mw_log_resize(self):
-        if data.settings['window_action'] == 3:
-            data.settings['window_action_pos'] = (self.winfo_rootx(), self.winfo_rooty(), self.winfo_width(), self.winfo_height())
-            save_settings()
-        self.destroy()
 
     def change_view(self, tag):
         if isinstance(tag, bool):
@@ -104,4 +96,10 @@ class MainWindow(Tk):
         """
         self.today_view.save_log()
         self.dates_view.save_log()
+        
+        # 记住位置
+        if data.settings['window_action'] == 3:
+            data.settings['window_action_pos'] = (self.winfo_rootx(), self.winfo_rooty(), self.winfo_width(), self.winfo_height())
+            save_settings()
+        
         self.destroy()

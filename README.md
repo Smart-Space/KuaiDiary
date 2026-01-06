@@ -1,4 +1,8 @@
-# KuaiDiary
+<div align="center">
+    <img src="./assets/logo-small.png" width="100">
+	<h1>KuaiDiary</h1>
+</div>
+
 **快日记**，开包即用的纯文本日记软件。
 
 ## 特性
@@ -50,3 +54,11 @@
 理论上，代码库中所使用的库和实现方式均为跨平台的。欢迎提供测试样例、协助以及问题报告。
 
 > Mac和Linux上，需要安装TinUI使用的Segoe Fluent Icons字体。
+
+## 截图
+
+![](./screenshot/today.png)
+
+![](./screenshot/dates.png)
+
+![](./screenshot/setting.png)
