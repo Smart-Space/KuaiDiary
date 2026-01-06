@@ -11,9 +11,8 @@ from ui.mainwindow import MainWindow
 from core.files import init_work_dir
 from core.settings import init_settings
 
-mainwindow = MainWindow()
-mainwindow.update() # 先显示窗口，加载数据完成后渲染UI
 init_settings()
+mainwindow = MainWindow()
 init_work_dir()
 mainwindow.init_ui()
 

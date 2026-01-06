@@ -5,7 +5,6 @@ from tkinter import Text
 
 from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel, show_error
 from tinui.theme.tinuilight import TinUILight
-# from tinui.theme.tinuidark import TinUIDark
 
 import data
 from control.dates_diary import reg_ui, load_one_diary, save_one_diary
@@ -21,6 +20,7 @@ class DatesView(BasicTinUI):
         self.ui = theme(self)
         self.init_data()
         self.init_ui()
+        self.theme = data.settings['theme']
     
     def init_data(self): # 获取以往日记信息
         if not data.months:
@@ -34,6 +34,7 @@ class DatesView(BasicTinUI):
                     self.data.append(k)
     
     def init_ui(self):
+        all_bg = '#F9F9F9' if data.settings['theme'] == 'light' else '#272727'
         self.root = ExpandPanel(self)
 
         hp = HorizonPanel(self, spacing=5)
@@ -48,14 +49,16 @@ class DatesView(BasicTinUI):
         tvfuncs = treev[-2]
         tvfuncs.close_all()
 
-        vp = VerticalPanel(self, spacing=5, bg='#F9F9F9', bd=17, padding=(4,4,4,4))
+        vp = VerticalPanel(self, spacing=5, bg=all_bg, bd=17, padding=(4,4,4,4))
         hp.add_child(vp, weight=1)
         hp2 = HorizonPanel(self, spacing=5, padding=(0,2,0,0))
         vp.add_child(hp2, 30)
         self.title = self.ui.add_title((0, 0), text='过往日记修改', anchor='w')
         hp2.add_child(self.title, weight=1)
+        self.tog_button_text, _, _, self.tog_button_func, tog_button = self.ui.add_togglebutton((0,0), text='\uE72E', font='{Segoe Fluent Icons} 14', command=self.switch_editable, anchor='w')
+        hp2.add_child(tog_button)
         hp2.add_child(self.ui.add_button2((0,0), text='导出该月', command=self.save_selected_month, anchor='w')[-1])
-        self.clip_button = self.ui.add_toolbutton((0,0), icon='\uE8C8', text='', font=('{Segoe Fluent Icons}', 14), bg='#F9F9F9', line='#F9F9F9', command=self.save_this_month_clipboard, anchor='w')[-1]
+        self.clip_button = self.ui.add_toolbutton((0,0), icon='\uE8C8', text='', font=('{Segoe Fluent Icons}', 14), bg=all_bg, line=all_bg, command=self.save_this_month_clipboard, anchor='w')[-1]
         hp2.add_child(self.clip_button)
 
         ep2 = ExpandPanel(self)
@@ -67,6 +70,7 @@ class DatesView(BasicTinUI):
         reg_ui(self.textbox)
 
         self.bind("<Configure>", self.on_resize)
+        self.tog_button_func.off()
 
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width-1, event.height-1)
@@ -84,6 +88,7 @@ class DatesView(BasicTinUI):
                 self.diary = diary
                 self.itemconfig(self.title, text=self.diary)
                 load_one_diary(diary)
+                self.tog_button_func.off()
     
     def save_log(self):
         if self.diary:
@@ -95,11 +100,11 @@ class DatesView(BasicTinUI):
             month = '-'.join(self.diary.split('-')[:2])
             content = export_month(month)
             if not content:
-                show_error(self.master, '无法导出', '该月没有日志。')
+                show_error(self.master, '无法导出', '该月没有日志。', theme=self.theme)
                 return
             export_month_to_file(month, content)
         else:
-            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。")
+            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。", theme=self.theme)
     
     def save_this_month_clipboard(self, _):
         self.save_log()
@@ -107,11 +112,21 @@ class DatesView(BasicTinUI):
             month = '-'.join(self.diary.split('-')[:2])
             content = export_month(month)
             if not content:
-                show_error(self.master, '无法导出', '该月没有日志。')
+                show_error(self.master, '无法导出', '该月没有日志。', theme=self.theme)
                 return
             self.clipboard_clear()
             self.itemconfig(self.clip_button+'icon', text='\uE73E')
             self.clipboard_append(content)
             self.after(1000, lambda: self.itemconfig(self.clip_button+'icon', text='\uE8C8'))
         else:
-            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。")
+            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。", theme=self.theme)
+    
+    def switch_editable(self, state):
+        if not self.diary:
+            return
+        if state:
+            self.itemconfig(self.tog_button_text, text='\uE785')
+            self.textbox.config(state='normal')
+        else:
+            self.itemconfig(self.tog_button_text, text='\uE72E')
+            self.textbox.config(state='disabled')

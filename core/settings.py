@@ -4,6 +4,9 @@
 import json
 import os
 
+from tinui.theme.tinuilight import TinUILight
+from tinui.theme.tinuidark import TinUIDark
+
 import data
 from data import setting_dir
 
@@ -26,7 +29,8 @@ def init_settings() -> None:
     settings = load_settings()
     if settings:
         data.settings.update(settings)
-        data.work_dir = data.settings.get("storage_path", "./datas")
+    data.work_dir = data.settings.get("storage_path", "./datas")
+    data.UITheme = TinUILight if data.settings.get("theme", "light") == "light" else TinUIDark
 
 def save_settings() -> None:
     """

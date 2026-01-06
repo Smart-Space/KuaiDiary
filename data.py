@@ -3,7 +3,10 @@ KuaiDiary数据
 """
 from tkinter import Tk
 
-version:str = "0.3.0" # 版本号
+from tinui.theme.tinuilight import TinUILight
+from tinui.theme.tinuidark import TinUIDark
+
+version:str = "1.0.0" # 版本号
 
 root:Tk = None # 主窗口
 
@@ -12,7 +15,12 @@ months:dict = {} # 存放月份数据 {年-月:[日期,...]}，需要有序字�
 
 setting_dir:str = "./settings" # 设置目录
 settings:dict = {
+    "theme": "dark", # 主题
+    "window_action": 0, # ("无要求","最大化","居中","记住上次位置")
+    "window_action_pos": (0, 0, 800, 600), # 窗口位置
     "storage_path": "./datas", # 数据存储路径
     "format_content": "\n{year}-{month}-{day}\n{content}\n", # 内容格式
     "format_sep": "==========", # 分隔线格式
 }
+
+UITheme:TinUILight|TinUIDark = None

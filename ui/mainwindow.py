@@ -3,28 +3,42 @@ KuaiDiary主窗口
 """
 from tkinter import Tk
 
-from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel
-from tinui.theme.tinuilight import TinUILight
-# from tinui.theme.tinuidark import TinUIDark
+from tinui import BasicTinUI, ExpandPanel, HorizonPanel
 
 from ui.today import TodayView
 from ui.dates import DatesView
 from ui.setting import SettingView
+import data
+from core.settings import save_settings
 
 class MainWindow(Tk):
 
-    def __init__(self, theme=TinUILight):
+    def __init__(self):
         super().__init__()
         self.title("KuaiDiary")
         self.iconbitmap('./logo.ico')
         self.geometry("800x600")
         self.minsize(800, 600)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.theme = theme
         self.now_view:BasicTinUI = None
-        # self.init_ui()
+        
+        window_action = data.settings.get('window_action', 0)
+        if window_action == 1:
+            self.state('zoomed')
+        elif window_action == 2:
+            sc_width = self.winfo_screenwidth()
+            sc_height = self.winfo_screenheight()
+            w, h = 800, 600
+            x = (sc_width - w) // 2
+            y = (sc_height - h) // 2
+            self.geometry(f"{w}x{h}+{x}+{y}")
+        elif window_action == 3:
+            x, y, w, h = data.settings['window_action_pos']
+            self.geometry(f"{w}x{h}+{x}+{y}")
+        self.update()
     
     def init_ui(self):
+        self.theme = data.UITheme
         self.ui_ = BasicTinUI(self)
         self.ui_.pack(fill="both", expand=True)
         self.ui = self.theme(self.ui_)
@@ -53,9 +67,17 @@ class MainWindow(Tk):
         self.dates_view = DatesView(self.child[0], self.theme)
         self.setting_view = SettingView(self.child[0], self.theme)
         self.now_view.pack(fill="both", expand=True)
+
+        self.protocol("WM_DELETE_WINDOW", self.mw_log_resize)
     
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width, event.height)
+    
+    def mw_log_resize(self):
+        if data.settings['window_action'] == 3:
+            data.settings['window_action_pos'] = (self.winfo_rootx(), self.winfo_rooty(), self.winfo_width(), self.winfo_height())
+            save_settings()
+        self.destroy()
 
     def change_view(self, tag):
         if isinstance(tag, bool):

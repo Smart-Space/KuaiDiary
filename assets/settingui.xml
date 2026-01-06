@@ -2,12 +2,29 @@
 <line pady='30'>
 	<line y='50' padx='20' anchor='w'>
 		<image imgfile='./assets/logo-small.png'></image>
-		<title text='快日记 | KuaiDiary'></title>
-		<paragraph text='%VERSION%'></paragraph>
+		<line lineanchor='w'>
+			<line>
+				<title text='快日记 | KuaiDiary'></title>
+				<paragraph text='%VERSION%'></paragraph>
+			</line>
+			<line><paragraph text='2025-present Smart-Space copyright'></paragraph></line>
+		</line>
 	</line>
 	<line padx='20'>
 		<link text='GitHub' command='self.funcs["open_github"]'></link>
 		<link text='Gitee' command='self.funcs["open_gitee"]'></link>
+	</line>
+	<line>
+		<line pady='10'><title text='界面设置' size='2'></title></line>
+		<line anchor='w' lineanchor='nw' padx='20' pady='10'>
+			<paragraph text='外观'></paragraph>
+			<radiobox content='("明亮","黑暗")' command='self.funcs["change_theme"]'>theme_radiobox</radiobox>
+			<paragraph text='(重启应用生效)'></paragraph>
+		</line>
+		<line anchor='w' lineanchor='nw' pady='10'>
+			<paragraph text='窗口启动'></paragraph>
+			<segmentbutton content='("无要求","最大化","居中","上次位置")' command='self.funcs["change_window_action"]'>win_segmentbutton</segmentbutton>
+		</line>
 	</line>
 	<line>
 		<line pady='10'><title text='存储设置' size='2'></title></line>
@@ -16,6 +33,7 @@
 			<entry width="300">st_entry</entry>
 			<button2 icon='&#xE712;' text='' command='self.funcs["select_storage_path"]'></button2>
 			<toolbutton text='' icon='&#xE8DA;' command='self.funcs["open_storage_path"]'></toolbutton>
+			<toolbutton text='' icon='&#xE897;' command='self.funcs["about_storage_path"]'></toolbutton>
 		</line>
 	</line>
 	<line>

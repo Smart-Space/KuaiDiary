@@ -18,6 +18,7 @@ def reg_ui(t:Text):
 def load_one_diary(date:str):
     global nowday
     nowday = load_diary(datetime.date.fromisoformat(date))
+    text.config(state="normal")
     text.delete("1.0", "end")
     text.insert("1.0", nowday.get_contents())
     text.edit_reset()

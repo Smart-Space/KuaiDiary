@@ -2,12 +2,11 @@
 设置界面
 """
 import webbrowser
-from tkinter import Text, Entry
+from tkinter import Text, Entry, Tk
 from tkinter.filedialog import askdirectory
 
 from tinui import BasicTinUI, TinUIXml, show_info
 from tinui.theme.tinuilight import TinUILight
-# from tinui.theme.tinuidark import TinUIDark
 
 import data
 from core.settings import save_settings
@@ -28,29 +27,57 @@ class SettingView(BasicTinUI):
         bbox[3] += 5
         self.config(scrollregion=bbox)
         self.bind('<MouseWheel>', self.on_mousewheel)
+        self.theme = data.settings['theme']
     
     def on_mousewheel(self, event):
         self.yview_scroll(int(-1*(event.delta/120)), "units")
     
     def init_ui(self):
-        self.uixml.funcs['open_github'] = self.open_github
-        self.uixml.funcs['open_gitee'] = self.open_gitee
-        self.uixml.funcs['apply_export_setting'] = self.apply_export_setting
-        self.uixml.funcs['about_export_setting'] = self.about_export_setting
-        self.uixml.funcs['select_storage_path'] = self.select_storage_path
-        self.uixml.funcs['open_storage_path'] = self.open_storage_path
+        if data.settings['theme'] == 'light':
+            rbg = '#F5F5F5'
+            rfg = '#1B1B1B'
+            ibg = '#000000'
+        else:
+            rbg = "#2A2A2A"
+            rfg = '#F5F5F5'
+            ibg = '#E0E0E0'
+        self.uixml.funcs.update({
+            'open_github': self.open_github,
+            'open_gitee': self.open_gitee,
+            'apply_export_setting': self.apply_export_setting,
+            'about_export_setting': self.about_export_setting,
+            'select_storage_path': self.select_storage_path,
+            'open_storage_path': self.open_storage_path,
+            'about_storage_path': self.about_storage_path,
+            'change_theme': self.change_theme,
+            'change_window_action': self.change_window_action,
+        })
         with open("./assets/settingui.xml", "r", encoding="utf-8") as f:
             xml = f.read().replace("%VERSION%", data.version)
         self.uixml.loadxml(xml)
+
+        # windows
+        self.theme_radiobox = self.uixml.tags['theme_radiobox'][-2]
+        if data.settings['theme'] == 'light':
+            self.theme_radiobox.select(0)
+        else:
+            self.theme_radiobox.select(1)
+        self.win_segmentbutton = self.uixml.tags['win_segmentbutton'][-2]
+        self.win_segmentbutton.select(data.settings['window_action'])
+        
+        # storage
         self.st_entry:Entry = self.uixml.tags['st_entry'][0]
         st_entry_func = self.uixml.tags['st_entry'][1]
-        st_entry_func.disable()
-        self.st_entry.config(state="normal", readonlybackground='#F5F5F5')
+        st_entry_func.disable(fg=rfg, bg=rbg)
+        self.st_entry.config(state="normal", readonlybackground=rbg)
         self.st_entry.insert(0, data.work_dir)
         self.st_entry.config(state="readonly")
+
+        # format
         self.fm_text:Text = self.uixml.tags['fm_textbox'][0]
         self.fm_entry:Entry = self.uixml.tags['fm_entry'][0]
         self.fm_string = self.uixml.tags['fm_string']
+        self.fm_text.config(insertwidth=1, insertbackground=ibg)
         self.fm_text.insert(1.0, data.settings.get("format_content", ""))
         self.fm_entry.insert(0, data.settings.get("format_sep", ""))
         self.preview_export_format()
@@ -67,7 +94,7 @@ class SettingView(BasicTinUI):
         "· {-month}\t无补零月\n" \
         "· {-day}\t\t无补零日\n" \
         "· {content}\t日记内容\n\n" \
-        "日记分隔为每篇日记的分隔符，且会出现在全部日记的首尾。")
+        "日记分隔为每篇日记的分隔符，且会出现在全部日记的首尾。", theme=self.theme)
     
     def apply_export_setting(self, _):
         content, sep = self.preview_export_format()
@@ -100,3 +127,26 @@ class SettingView(BasicTinUI):
     
     def open_storage_path(self, _):
         open_folder(data.work_dir)
+    
+    def about_storage_path(self, _):
+        show_info(self.master, "存储目录说明", "更改存储目录后，快日记会迁移所有日记。\n当日记较多时，请等待片刻。", theme=self.theme)
+
+    def change_theme(self, t):
+        if t == '明亮':
+            data.settings['theme'] = 'light'
+        else:
+            data.settings['theme'] = 'dark'
+        save_settings()
+    
+    def change_window_action(self, t):
+        if t == '无要求':
+            now = 0
+        elif t == '最大化':
+            now = 1
+        elif t == '居中':
+            now = 2
+        elif t == '上次位置':
+            now = 3
+        if now != data.settings['window_action']:
+            data.settings['window_action'] = now
+            save_settings()

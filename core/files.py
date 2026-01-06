@@ -6,7 +6,6 @@ import datetime
 from tkinter.filedialog import asksaveasfilename
 
 import data
-from data import setting_dir
 from core.diary import Diary
 
 def init_work_dir():
@@ -31,8 +30,6 @@ def init_work_dir():
         data.months = dict(sorted(months.items(), reverse=True))
         if now_month in data.months and now_day in data.months[now_month]:
             data.months[now_month].remove(now_day)
-    if not os.path.exists(setting_dir):
-        os.makedirs(setting_dir)
 
 def save_today_diary(diary:Diary):
     """
