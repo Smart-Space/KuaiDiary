@@ -7,6 +7,7 @@ from tinui import BasicTinUI, ExpandPanel, HorizonPanel
 
 from ui.today import TodayView
 from ui.dates import DatesView
+from ui.export import ExportView
 from ui.setting import SettingView
 import data
 from core.settings import save_settings
@@ -50,7 +51,7 @@ class MainWindow(Tk):
         nav_content = (
             ('\uE929','今日'),
             ('\uE787','往昔'),
-            # ('\uEDE1','导出'),
+            ('\uEDE1','导出'),
             ('\uE713','设置')
         )
         self.nav = self.ui.add_navigation((0,0), maxwidth=100, content=nav_content, command=self.change_view)
@@ -65,6 +66,7 @@ class MainWindow(Tk):
 
         self.now_view = self.today_view = TodayView(self.child[0], self.theme)
         self.dates_view = DatesView(self.child[0], self.theme)
+        self.export_view = ExportView(self.child[0], self.theme)
         self.setting_view = SettingView(self.child[0], self.theme)
         self.now_view.pack(fill="both", expand=True)
     
@@ -83,6 +85,9 @@ class MainWindow(Tk):
         elif tag == '往昔':
             self.now_view.pack_forget()
             self.now_view = self.dates_view
+        elif tag == '导出':
+            self.now_view.pack_forget()
+            self.now_view = self.export_view
         elif tag == '设置':
             self.now_view.pack_forget()
             self.now_view = self.setting_view
