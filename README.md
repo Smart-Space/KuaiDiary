@@ -57,8 +57,10 @@
 
 ## 截图
 
-![](./screenshot/today.png)
+<img src="./screenshot/today.png" width="500" />
 
-![](./screenshot/dates.png)
+<img src="./screenshot/dates.png" width="500" />
 
-![](./screenshot/setting.png)
+<img src="./screenshot/export.png"  width="500" />
+
+<img src="./screenshot/setting.png" width="500" />

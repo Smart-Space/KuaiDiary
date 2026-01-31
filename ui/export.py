@@ -1,12 +1,13 @@
 """
 自定义导出
 """
-from tkinter import Entry, Text
+from tkinter import Text
 from tkinter.filedialog import askdirectory
 import datetime
 
 from tinui import BasicTinUI, VerticalPanel, HorizonPanel, ExpandPanel, show_warning, show_error, show_info
 from tinui.theme.tinuilight import TinUILight
+from tinuipicker.datepicker import TinUIDatePicker, pickerdark, pickerlight
 
 import data
 from core.files import exist_diary, export_from_to
@@ -16,9 +17,10 @@ class ExportView(BasicTinUI):
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
-        y, m, d = datetime.datetime.now().strftime('%Y-%m-%d').split('-')
-        self.start = [y, m, d]
-        self.end = [y, m, d]
+        self.start = None
+        self.end = None
+        self.temp_start = datetime.date.today()
+        self.temp_end = datetime.date.today()
         self.sep_year = False
         self.sep_month = False
         self.diarys:list[datetime.date] = [] # 存在的日期对象
@@ -28,6 +30,7 @@ class ExportView(BasicTinUI):
     
     def init_ui(self):
         all_bg = '#F9F9F9' if data.settings['theme'] == 'light' else '#272727'
+        picker_colors = pickerlight if data.settings['theme'] == 'light' else pickerdark
         self.root = ExpandPanel(self)
 
         vp = VerticalPanel(self, spacing=5, bg=all_bg, bd=17, padding=(4,4,4,4))
@@ -36,42 +39,14 @@ class ExportView(BasicTinUI):
         hp1 = HorizonPanel(self, spacing=5)
         vp.add_child(hp1, 60)
         hp1.add_child(self.ui.add_back((0,0)), weight=1)
-        hp1.add_child(self.ui.add_paragraph((0,0), text='开始年份', anchor='center'))
-        sy_entry = self.ui.add_entry((0,0), width=60, anchor='center')
-        hp1.add_child(sy_entry[-1], 100)
-        self.sy_entry:Entry = sy_entry[0]
-        self.sy_entry.insert(0, self.start[0])
-        hp1.add_child(self.ui.add_paragraph((0,0), text='月份', anchor='center'))
-        sm_entry = self.ui.add_entry((0,0), width=60, anchor='center')
-        hp1.add_child(sm_entry[-1], 100)
-        self.sm_entry:Entry = sm_entry[0]
-        self.sm_entry.insert(0, self.start[1])
-        hp1.add_child(self.ui.add_paragraph((0,0), text='日期', anchor='center'))
-        sd_entry = self.ui.add_entry((0,0), width=60, anchor='w')
-        hp1.add_child(sd_entry[-1], 100)
-        self.sd_entry:Entry = sd_entry[0]
-        self.sd_entry.insert(0, self.start[2])
+        hp1.add_child(self.ui.add_paragraph((0,0), text='开始日期', anchor='center'))
+        self.start_datepicker = TinUIDatePicker(self, (0,0), font=('Segoe UI', 12), now=self.temp_start, command=self.set_start_date, anchor='w', **picker_colors)
+        hp1.add_child(self.start_datepicker.uid)
+        hp1.add_child(self.ui.add_back((0,0)), 20)
+        hp1.add_child(self.ui.add_paragraph((0,0),text='结束年份', anchor='center'))
+        self.end_datepicker = TinUIDatePicker(self, (0,0), font=('Segoe UI', 12), now=self.temp_end, command=self.set_end_date, anchor='w', **picker_colors)
+        hp1.add_child(self.end_datepicker.uid)
         hp1.add_child(self.ui.add_back((0,0)), weight=1)
-
-        hp2 = HorizonPanel(self, spacing=5)
-        vp.add_child(hp2, 60)
-        hp2.add_child(self.ui.add_back((0,0)), weight=1)
-        hp2.add_child(self.ui.add_paragraph((0,0),text='结束年份', anchor='center'))
-        ey_entry = self.ui.add_entry((0,0), width=60, anchor='center')
-        hp2.add_child(ey_entry[-1], 100)
-        self.ey_entry = ey_entry[0]
-        self.ey_entry.insert(0, self.end[0])
-        hp2.add_child(self.ui.add_paragraph((0,0), text='月份', anchor='center'))
-        em_entry = self.ui.add_entry((0,0), width=60, anchor='center')
-        hp2.add_child(em_entry[-1], 100)
-        self.em_entry = em_entry[0]
-        self.em_entry.insert(0, self.end[1])
-        hp2.add_child(self.ui.add_paragraph((0,0), text='日期', anchor='center'))
-        ed_entry = self.ui.add_entry((0,0), width=60, anchor='w')
-        hp2.add_child(ed_entry[-1], 100)
-        self.ed_entry = ed_entry[0]
-        self.ed_entry.insert(0, self.end[2])
-        hp2.add_child(self.ui.add_back((0,0)), weight=1)
 
         hp3 = HorizonPanel(self, spacing=5)
         vp.add_child(hp3, 60)
@@ -94,6 +69,12 @@ class ExportView(BasicTinUI):
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width, event.height)
     
+    def set_start_date(self, date):
+        self.temp_start = datetime.date.fromisoformat(date)
+    
+    def set_end_date(self, date):
+        self.temp_end = datetime.date.fromisoformat(date)
+    
     def set_sep_year(self, value):
         self.start = None # 重置开始日期
         self.sep_year = value
@@ -106,44 +87,41 @@ class ExportView(BasicTinUI):
         self.textbox.insert('end', text + '\n')
     
     def analyze(self, _):
-        start = [self.sy_entry.get(), self.sm_entry.get(), self.sd_entry.get()]
-        end = [self.ey_entry.get(), self.em_entry.get(), self.ed_entry.get()]
-        if not all(start) or not all(end):
-            show_warning(self, '日期格式错误', '请输入完整的开始日期和结束日期')
+        if data.months.__len__() == 0:
+            show_warning(self, '无日记内容', '空空如也，快写下你的第一篇日记吧~')
             return
-        if not all(map(lambda x: x.isdigit(), start)) or not all(map(lambda x: x.isdigit(), end)):
-            show_error(self, '日期格式错误', '请输入数字的年份、月份、日期')
-            return
-        try:
-            start_date = datetime.date(*map(int, start))
-        except ValueError:
-            show_error(self, '日期格式错误', '请输入正确的开始日期')
-            return
-        try:
-            end_date = datetime.date(*map(int, end))
-        except ValueError:
-            show_error(self, '日期格式错误', '请输入正确的结束日期')
-            return
+
+        start_date = self.temp_start
+        end_date = self.temp_end
         if start_date > end_date:
             show_error(self, '日期错误', '开始日期不能大于结束日期')
             return
         elif start_date == end_date:
             show_warning(self, '日期错误', '开始日期和结束日期相同')
             return
-        if self.start == start and self.end == end:
+        if self.start == start_date and self.end == end_date:
             # 日期未修改，无需分析
             return True
-        self.start = start
-        self.end = end
+        self.start = start_date
+        self.end = end_date
         self.textbox.config(state='normal')
         self.textbox.delete('1.0', 'end')
-        self._log('开始日期：' + '-'.join(self.start))
-        self._log('结束日期：' + '-'.join(self.end))
+        self._log('开始日期：' + str(self.start))
+        self._log('结束日期：' + str(self.end))
         self._log('分年导出：' + str(self.sep_year))
         self._log('分月内容：' + str(self.sep_month))
+        
         current_date = start_date
         cnt = 0
         self.diarys.clear()
+        last_year_month_str = next(reversed(data.months.items()))[0].split('-')
+        last_year_month = datetime.date(int(last_year_month_str[0]), int(last_year_month_str[1]), 1)
+        if last_year_month > start_date:
+            current_date = last_year_month
+        least_year_month_str = next(iter(data.months.items()))[0].split('-')
+        least_year_month = datetime.date(int(least_year_month_str[0]), int(least_year_month_str[1]), 1) + datetime.timedelta(days=30)
+        if least_year_month < end_date:
+            end_date = least_year_month
         while current_date <= end_date:
             if exist_diary(current_date):
                 self.diarys.append(current_date)
