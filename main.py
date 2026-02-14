@@ -5,7 +5,8 @@ Author: Smart-Space<<smart-space@qq.com>>
 License: MIT
 Copyright (c) 2025 Smart-Space
 """
-
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from ui.mainwindow import MainWindow
 from core.files import init_work_dir
