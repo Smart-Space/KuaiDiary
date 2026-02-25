@@ -1,12 +1,13 @@
 """
 KuaiDiary数据
 """
+import socket
 from tkinter import Tk
 
 from tinui.theme.tinuilight import TinUILight
 from tinui.theme.tinuidark import TinUIDark
 
-version:str = "1.2.0" # 版本号
+version:str = "1.3.0" # 版本号
 
 root:Tk = None # 主窗口
 
@@ -24,3 +25,6 @@ settings:dict = {
 }
 
 UITheme:TinUILight|TinUIDark = None
+
+SERVER_SOCKET:socket.socket = None # 单实例通信服务器
+SERVER_PORT:int = 21567 # 通信端口

@@ -1,0 +1,10 @@
+.vscode/
+assets/
+datas/
+screenshot/
+
+*.code-workspace
+LICENSE
+logo.ico
+NEWS.txt
+TODO.txt
