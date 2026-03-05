@@ -64,7 +64,6 @@ def _save_diary_file(diary:Diary):
     obsolete_path = formatted_path if not diary.format else plain_path
     if os.path.exists(obsolete_path) and obsolete_path != target_path:
         os.remove(obsolete_path)
-    print(target_path)
     with open(target_path, "w", encoding="utf-8") as f:
         f.write(diary.contents)
 
