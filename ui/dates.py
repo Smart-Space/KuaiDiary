@@ -234,15 +234,19 @@ class DatesView(BasicTinUI):
 
     def format_bold(self, _):
         self._toggle_font_flag('bold')
+        self.textbox.edit_modified(True)
 
     def format_italic(self, _):
         self._toggle_font_flag('italic')
+        self.textbox.edit_modified(True)
 
     def format_underline(self, _):
         self._toggle_simple_tag(self.TAG_UNDERLINE)
+        self.textbox.edit_modified(True)
 
     def format_strikethrough(self, _):
         self._toggle_simple_tag(self.TAG_STRIKETHROUGH)
+        self.textbox.edit_modified(True)
     
     first_mdf_change = True
     def mdf_state_changed(self, tag):

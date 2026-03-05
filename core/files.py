@@ -3,6 +3,7 @@
 """
 import os
 import datetime
+import pickle
 from tkinter.filedialog import asksaveasfilename
 
 import data
@@ -64,8 +65,12 @@ def _save_diary_file(diary:Diary):
     obsolete_path = formatted_path if not diary.format else plain_path
     if os.path.exists(obsolete_path) and obsolete_path != target_path:
         os.remove(obsolete_path)
-    with open(target_path, "w", encoding="utf-8") as f:
-        f.write(diary.contents)
+    if isinstance(diary.contents, str):
+        with open(target_path, "w", encoding="utf-8") as f:
+            f.write(diary.contents)
+    else:
+        with open(target_path, "wb") as f:
+            pickle.dump(diary.contents, f)
 
 def init_work_dir():
     """
@@ -130,8 +135,12 @@ def load_today_diary() -> Diary:
     file_path, formatted = _resolve_diary_file(month_dir, file_name)
     if not file_path:
         return Diary(datetime.date.today())
-    with open(file_path, "r", encoding="utf-8") as f:
-        contents = f.read()
+    if not formatted:
+        with open(file_path, "r", encoding="utf-8") as f:
+            contents = f.read()
+    else:
+        with open(file_path, "rb") as f:
+            contents = pickle.load(f)
     diary = Diary(datetime.date.today())
     diary.update_contents(contents, formatted)
     return diary
@@ -155,8 +164,12 @@ def load_diary(date:datetime.date) -> Diary:
     file_path, formatted = _resolve_diary_file(month_dir, day)
     if not file_path:
         return Diary(date)
-    with open(file_path, "r", encoding="utf-8") as f:
-        contents = f.read()
+    if not formatted:
+        with open(file_path, "r", encoding="utf-8") as f:
+            contents = f.read()
+    else:
+        with open(file_path, "rb") as f:
+            contents = pickle.load(f)
     diary = Diary(date)
     diary.update_contents(contents, formatted)
     return diary
@@ -177,12 +190,16 @@ def export_month(month:str) -> str:
     year, month = month.split("-")
     _month = month.lstrip("0")
     for day in days:
-        file_path, _ = _resolve_diary_file(month_dir, day)
+        file_path, formatted = _resolve_diary_file(month_dir, day)
         if not file_path:
             continue
         _day = day.lstrip("0")
-        with open(file_path, "r", encoding="utf-8") as f:
-            contents = f.read()
+        if not formatted:
+            with open(file_path, "r", encoding="utf-8") as f:
+                contents = f.read()
+        else:
+            with open(file_path, "rb") as f:
+                contents = pickle.load(f)
         result = format.replace('{year}', year).replace('{month}', month).replace('{-month}', _month).replace('{day}', day).replace('{-day}', _day).replace('{content}', contents)
         results.append(result)
     return separator+separator.join(results)+separator
