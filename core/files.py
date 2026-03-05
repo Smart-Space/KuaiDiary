@@ -8,41 +8,92 @@ from tkinter.filedialog import asksaveasfilename
 import data
 from core.diary import Diary
 
+DIARY_FORMAT_SUFFIX = ".mdf"
+
+
+def _month_str_from_date(date:datetime.date) -> str:
+    return date.strftime("%Y-%m")
+
+
+def _day_str_from_date(date:datetime.date) -> str:
+    return date.strftime("%d")
+
+
+def _month_dir_path(month:str) -> str:
+    return os.path.join(data.work_dir, month)
+
+
+def _strip_day_suffix(file_name:str) -> str:
+    return os.path.splitext(file_name)[0]
+
+
+def _diary_candidate_paths(month_dir:str, day:str) -> tuple[str, str]:
+    plain_path = os.path.join(month_dir, day)
+    return plain_path, plain_path + DIARY_FORMAT_SUFFIX
+
+
+def _resolve_diary_file(month_dir:str, day:str) -> tuple[str|None, bool]:
+    plain_path, formatted_path = _diary_candidate_paths(month_dir, day)
+    if os.path.exists(formatted_path):
+        return formatted_path, True
+    if os.path.exists(plain_path):
+        return plain_path, False
+    return None, False
+
+
+def _collect_days(month_dir:str) -> list[str]:
+    if not os.path.isdir(month_dir):
+        return []
+    days = set()
+    for file in os.listdir(month_dir):
+        file_path = os.path.join(month_dir, file)
+        if os.path.isfile(file_path):
+            day = _strip_day_suffix(file)
+            if day.isdigit():
+                days.add(day)
+    return sorted(days, key=lambda x: int(x))
+
+
+def _save_diary_file(diary:Diary):
+    month = _month_str_from_date(diary.date)
+    day = _day_str_from_date(diary.date)
+    month_dir = _month_dir_path(month)
+    os.makedirs(month_dir, exist_ok=True)
+    plain_path, formatted_path = _diary_candidate_paths(month_dir, day)
+    target_path = formatted_path if diary.format else plain_path
+    obsolete_path = formatted_path if not diary.format else plain_path
+    if os.path.exists(obsolete_path) and obsolete_path != target_path:
+        os.remove(obsolete_path)
+    with open(target_path, "w", encoding="utf-8") as f:
+        f.write(diary.contents)
+
 def init_work_dir():
     """
     初始化工作目录
     """
     if not os.path.exists(data.work_dir):
         os.makedirs(data.work_dir)
-    else:
-        # 遍历各个子文件夹，获取文件夹名，在获取其下所有文件名
-        months:dict = {}
-        now_month = datetime.date.today().strftime("%Y-%m")
-        now_day = datetime.date.today().strftime("%d")
-        for file_name in os.listdir(data.work_dir):
-            file_path = os.path.join(data.work_dir, file_name)
-            if os.path.isdir(file_path):
-                files = []
-                for file in os.listdir(file_path):
-                    files.append(file)
-                months[file_name] = files
-        # data.months为months的倒叙，从新到旧
-        data.months = dict(sorted(months.items(), reverse=True))
-        if now_month in data.months and now_day in data.months[now_month]:
-            data.months[now_month].remove(now_day)
+    months:dict[str, list[str]] = {}
+    now_month = datetime.date.today().strftime("%Y-%m")
+    now_day = datetime.date.today().strftime("%d")
+    for file_name in os.listdir(data.work_dir):
+        file_path = os.path.join(data.work_dir, file_name)
+        if os.path.isdir(file_path):
+            days = _collect_days(file_path)
+            months[file_name] = days
+    sorted_months = dict(sorted(months.items(), reverse=True))
+    formatted_months:dict[str, list[str]] = {}
+    for month, days in sorted_months.items():
+        formatted_months[month] = sorted(days, key=lambda x: int(x))
+    data.months = formatted_months
+    if now_month in data.months and now_day in data.months[now_month]:
+        data.months[now_month].remove(now_day)
 
 def save_today_diary(diary:Diary):
     """
     保存当天日记
     """
-    month = diary.date.strftime("%Y-%m")
-    month_dir = os.path.join(data.work_dir, month)
-    if not os.path.exists(month_dir):
-        os.makedirs(month_dir)
-    file_name = diary.date.strftime("%d")
-    file_path = os.path.join(month_dir, file_name)
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(diary.contents)
+    _save_diary_file(diary)
 
 def delete_today_diary():
     """
@@ -53,8 +104,8 @@ def delete_today_diary():
     if not os.path.exists(month_dir):
         return
     file_name = datetime.date.today().strftime("%d")
-    file_path = os.path.join(month_dir, file_name)
-    if not os.path.exists(file_path):
+    file_path, _ = _resolve_diary_file(month_dir, file_name)
+    if not file_path:
         return
     os.remove(file_path)
     # 判断当月文件夹是否为空
@@ -65,11 +116,7 @@ def save_diary(diary:Diary):
     """
     保存过往日记
     """
-    month_dir = diary.date.strftime("%Y-%m")
-    file_name = diary.date.strftime("%d")
-    file_path = os.path.join(data.work_dir, month_dir, file_name)
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(diary.contents)
+    _save_diary_file(diary)
 
 def load_today_diary() -> Diary:
     """
@@ -80,35 +127,38 @@ def load_today_diary() -> Diary:
     if not os.path.exists(month_dir):
         return Diary(datetime.date.today())
     file_name = datetime.date.today().strftime("%d")
-    file_path = os.path.join(month_dir, file_name)
-    if not os.path.exists(file_path):
+    file_path, formatted = _resolve_diary_file(month_dir, file_name)
+    if not file_path:
         return Diary(datetime.date.today())
     with open(file_path, "r", encoding="utf-8") as f:
         contents = f.read()
     diary = Diary(datetime.date.today())
-    diary.update_contents(contents)
+    diary.update_contents(contents, formatted)
     return diary
 
 def exist_diary(date:datetime.date) -> bool:
     """
     判断是否存在这天日记。由导出遍历功能调用
     """
-    month_dir = date.strftime("%Y-%m")
-    file_name = date.strftime("%d")
-    file_path = os.path.join(data.work_dir, month_dir, file_name)
-    return os.path.exists(file_path)
+    month_dir = _month_dir_path(_month_str_from_date(date))
+    day = _day_str_from_date(date)
+    file_path, _ = _resolve_diary_file(month_dir, day)
+    return file_path is not None
 
 def load_diary(date:datetime.date) -> Diary:
     """
     读取过往日记
     """
-    month_dir = date.strftime("%Y-%m")
-    file_name = date.strftime("%d")
-    file_path = os.path.join(data.work_dir, month_dir, file_name)
+    month = _month_str_from_date(date)
+    month_dir = _month_dir_path(month)
+    day = _day_str_from_date(date)
+    file_path, formatted = _resolve_diary_file(month_dir, day)
+    if not file_path:
+        return Diary(date)
     with open(file_path, "r", encoding="utf-8") as f:
         contents = f.read()
     diary = Diary(date)
-    diary.update_contents(contents)
+    diary.update_contents(contents, formatted)
     return diary
 
 def export_month(month:str) -> str:
@@ -121,20 +171,20 @@ def export_month(month:str) -> str:
     if not os.path.exists(month_dir):
         return ""
     results = []
-    files = os.listdir(month_dir)
-    if len(files) == 0:
+    days = _collect_days(month_dir)
+    if len(days) == 0:
         return ""
-    files.sort(key=lambda x: int(x))
     year, month = month.split("-")
     _month = month.lstrip("0")
-    for file_name in files:
-        _day = file_name.lstrip("0")
-        file_path = os.path.join(month_dir, file_name)
-        if os.path.isfile(file_path):
-            with open(file_path, "r", encoding="utf-8") as f:
-                contents = f.read()
-            result = format.replace('{year}', year).replace('{month}', month).replace('{-month}', _month).replace('{day}', file_name).replace('{-day}', _day).replace('{content}', contents)
-            results.append(result)
+    for day in days:
+        file_path, _ = _resolve_diary_file(month_dir, day)
+        if not file_path:
+            continue
+        _day = day.lstrip("0")
+        with open(file_path, "r", encoding="utf-8") as f:
+            contents = f.read()
+        result = format.replace('{year}', year).replace('{month}', month).replace('{-month}', _month).replace('{day}', day).replace('{-day}', _day).replace('{content}', contents)
+        results.append(result)
     return separator+separator.join(results)+separator
 
 def export_month_to_file(month:str, content:str):
@@ -208,8 +258,9 @@ def export_from_to(all_days:list[datetime.date], dir:str, sepyear:bool=False, se
             current_group = group
             current_file.write(separator)
         # 流式写入日记
-        diary = load_diary(d)
-        current_file.write(format.replace('{year}', str(d.year)).replace('{month}', str(d.month)).replace('{day}', str(d.day)).replace('{-month}', str(d.month).lstrip('0')).replace('{-day}', str(d.day).lstrip('0')).replace('{content}', diary.contents))
-        current_file.write(separator)
+        if current_file:
+            diary = load_diary(d)
+            current_file.write(format.replace('{year}', str(d.year)).replace('{month}', str(d.month)).replace('{day}', str(d.day)).replace('{-month}', str(d.month).lstrip('0')).replace('{-day}', str(d.day).lstrip('0')).replace('{content}', diary.contents))
+            current_file.write(separator)
     if current_file:
         current_file.close()
