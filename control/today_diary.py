@@ -21,15 +21,17 @@ def load_context():
         text.insert("end", today.get_contents())
         text.edit_reset()
         text.edit_modified(False)
+    return today
 
-def save_context():
-    if not text or not text.edit_modified():
+def save_context(format:bool=False):
+    if (not text or not text.edit_modified()) and format == today.format:
         return
     context = text.get('1.0', 'end-1c') # 去掉文本框末尾换行
     if not today:
         return
     if context:
         today.update_contents(context)
+        today.format = format
         save_today_diary(today)
     else:
         delete_today_diary()

@@ -24,11 +24,13 @@ def load_one_diary(date:str):
         text.insert("1.0", nowday.get_contents())
         text.edit_reset()
         text.edit_modified(False)
+    return nowday
 
-def save_one_diary():
-    if not text or not text.edit_modified() or not nowday:
+def save_one_diary(format:bool=False):
+    if (not text or not text.edit_modified() or not nowday) and format == nowday.format:
         return
     context = text.get("1.0", "end-1c")
     nowday.update_contents(context)
+    nowday.format = format
     save_diary(nowday)
     text.edit_modified(False)

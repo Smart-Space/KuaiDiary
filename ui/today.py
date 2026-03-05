@@ -31,6 +31,10 @@ class TodayView(BasicTinUI):
         hp = HorizonPanel(self, spacing=5, padding=(0,2,0,0))
         vp.add_child(hp, 30)
         hp.add_child(self.ui.add_title((0,0), text=datetime.date.today().strftime('%Y-%m-%d'), anchor='w'), weight=1)
+        mdf_checks = self.ui.add_checkbutton((0,0), text='富格式', command=self.mdf_state_changed, anchor='w')
+        self.mdf_check = mdf_checks[-1]
+        self.mdf_check_funcs = mdf_checks[-2]
+        hp.add_child(self.mdf_check)
         hp.add_child(self.ui.add_button2((0,0), text='导出本月', command=self.save_this_month, anchor='w')[-1])
         self.clip_button = self.ui.add_toolbutton((0,0), icon='\uE8C8', text='', font=('{Segoe Fluent Icons}', 14), bg=all_bg, line=all_bg, command=self.save_this_month_clipboard, anchor='w')[-1]
         hp.add_child(self.clip_button)
@@ -42,7 +46,12 @@ class TodayView(BasicTinUI):
         self.textbox:Text = textbox[0]
         editorabel(self.textbox)
         reg_textbox(self.textbox)
-        load_context()
+        today = load_context()
+
+        if today.format:
+            self.mdf_check_funcs.on()
+        else:
+            self.mdf_check_funcs.off()
 
         self.bind("<Configure>", self.on_resize)
     
@@ -50,7 +59,10 @@ class TodayView(BasicTinUI):
         self.root.update_layout(event.x, event.y, event.width-1, event.height-1)
     
     def save_log(self):
-        save_context()
+        save_context(self.format)
+    
+    def mdf_state_changed(self, tag):
+        self.format = tag
     
     def save_this_month(self, _):
         self.save_log()

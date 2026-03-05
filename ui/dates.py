@@ -55,6 +55,10 @@ class DatesView(BasicTinUI):
         vp.add_child(hp2, 30)
         self.title = self.ui.add_title((0, 0), text='过往日记修改', anchor='w')
         hp2.add_child(self.title, weight=1)
+        mdf_checks = self.ui.add_checkbutton((0,0), text='富格式', command=self.mdf_state_changed, anchor='w')
+        self.mdf_check = mdf_checks[-1]
+        self.mdf_check_funcs = mdf_checks[-2]
+        hp2.add_child(self.mdf_check)
         self.tog_button_text, _, _, self.tog_button_func, tog_button = self.ui.add_togglebutton((0,0), text='\uE72E', font='{Segoe Fluent Icons} 14', command=self.switch_editable, anchor='w')
         hp2.add_child(tog_button)
         hp2.add_child(self.ui.add_button2((0,0), text='导出该月', command=self.save_selected_month, anchor='w')[-1])
@@ -87,12 +91,16 @@ class DatesView(BasicTinUI):
                     save_one_diary()
                 self.diary = diary
                 self.itemconfig(self.title, text=self.diary)
-                load_one_diary(diary)
+                nowday = load_one_diary(diary)
+                if nowday.format:
+                    self.mdf_check_funcs.on()
+                else:
+                    self.mdf_check_funcs.off()
                 self.tog_button_func.off()
     
     def save_log(self):
         if self.diary:
-            save_one_diary()
+            save_one_diary(self.format)
     
     def save_selected_month(self, _):
         self.save_log()
@@ -130,3 +138,6 @@ class DatesView(BasicTinUI):
         else:
             self.itemconfig(self.tog_button_text, text='\uE72E')
             self.textbox.config(state='disabled')
+    
+    def mdf_state_changed(self, tag):
+        self.format = tag
