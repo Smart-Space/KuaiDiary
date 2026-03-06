@@ -20,12 +20,23 @@ class TodayView(BasicTinUI):
     TAG_UNDERLINE = 'fmt_underline'
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
     TAG_HIGHLIGHT = 'fmt_highlight'
+    TAG_QUOTE = 'fmt_quote'
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
         self.ui = theme(self)
-        self.init_ui()
         self.theme = data.settings['theme']
+        if self.theme == 'light':
+            self.format_colors = {
+                'markbg': '#FFE600',
+                'quotefg': '#888888'
+            }
+        else:
+            self.format_colors = {
+                'markbg': '#D87700',
+                'quotefg': '#BBBBBB'
+            }
+        self.init_ui()
     
     def init_ui(self):
         all_bg = '#F9F9F9' if data.settings['theme'] == 'light' else '#272727'
@@ -51,6 +62,7 @@ class TodayView(BasicTinUI):
             ('', '\uE8DC', self.format_underline),
             ('', '\uEDE0', self.format_strikethrough),
             ('', '\uE7E6', self.format_highlight),
+            ('', '\uE9AA', self.format_quote)
         )
         self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-1]
 
@@ -124,8 +136,8 @@ class TodayView(BasicTinUI):
         self.textbox.tag_configure('fmt_font_italic', font=self.italic_font)
         self.textbox.tag_configure('fmt_font_bold_italic', font=self.bold_italic_font)
         self.textbox.tag_configure(self.TAG_UNDERLINE, underline=1)
-        self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
-        self.textbox.tag_configure(self.TAG_HIGHLIGHT, background="#FFE600" if data.settings['theme'] == 'light' else "#D87700")
+        self.textbox.tag_configure(self.TAG_HIGHLIGHT, background=self.format_colors['markbg'])
+        self.textbox.tag_configure(self.TAG_QUOTE, lmargin1=20, lmargin2=20, foreground=self.format_colors['quotefg'])
 
     def _selection_range(self):
         try:
@@ -207,3 +219,16 @@ class TodayView(BasicTinUI):
     
     def format_highlight(self, _):
         self._toggle_simple_tag(self.TAG_HIGHLIGHT)
+    
+    def format_quote(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
+        start, _ = self._selection_range()
+        if not start:
+            start = self.textbox.index('insert')
+        line_start = self.textbox.index(f'{start} linestart')
+        line_end = self.textbox.index(f'{start} lineend +1c')
+        if self.TAG_QUOTE in self.textbox.tag_names(start):
+            self.textbox.tag_remove(self.TAG_QUOTE, line_start, line_end)
+        else:
+            self.textbox.tag_add(self.TAG_QUOTE, line_start, line_end)

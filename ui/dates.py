@@ -19,15 +19,26 @@ class DatesView(BasicTinUI):
     TAG_UNDERLINE = 'fmt_underline'
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
     TAG_HIGHLIGHT = 'fmt_highlight'
+    TAG_QUOTE = 'fmt_quote'
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
         self.diary:str = None
         self.ui = theme(self)
+        self.theme = data.settings['theme']
+        if self.theme == 'light':
+            self.format_colors = {
+                'markbg': '#FFE600',
+                'quotefg': '#888888'
+            }
+        else:
+            self.format_colors = {
+                'markbg': '#D87700',
+                'quotefg': '#BBBBBB'
+            }
         self.format = False
         self.init_data()
         self.init_ui()
-        self.theme = data.settings['theme']
     
     def init_data(self): # 获取以往日记信息
         if not data.months:
@@ -78,6 +89,7 @@ class DatesView(BasicTinUI):
             ('', '\uE8DC', self.format_underline),
             ('', '\uEDE0', self.format_strikethrough),
             ('', '\uE7E6', self.format_highlight),
+            ('', '\uE9AA', self.format_quote)
         )
         self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-1]
 
@@ -170,7 +182,8 @@ class DatesView(BasicTinUI):
         self.textbox.tag_configure('fmt_font_bold_italic', font=self.bold_italic_font)
         self.textbox.tag_configure(self.TAG_UNDERLINE, underline=1)
         self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
-        self.textbox.tag_configure(self.TAG_HIGHLIGHT, background="#FFE600" if data.settings['theme'] == 'light' else "#D87700")
+        self.textbox.tag_configure(self.TAG_HIGHLIGHT, background=self.format_colors['markbg'])
+        self.textbox.tag_configure(self.TAG_QUOTE, lmargin1=20, lmargin2=20, foreground=self.format_colors['quotefg'])
 
     def _selection_range(self):
         try:
@@ -262,6 +275,19 @@ class DatesView(BasicTinUI):
         if self.textbox.cget('state') == 'disabled':
             return
         self._toggle_simple_tag(self.TAG_HIGHLIGHT)
+    
+    def format_quote(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
+        start, _ = self._selection_range()
+        if not start:
+            start = self.textbox.index('insert')
+        line_start = self.textbox.index(f'{start} linestart')
+        line_end = self.textbox.index(f'{start} lineend +1c')
+        if self.TAG_QUOTE in self.textbox.tag_names(start):
+            self.textbox.tag_remove(self.TAG_QUOTE, line_start, line_end)
+        else:
+            self.textbox.tag_add(self.TAG_QUOTE, line_start, line_end)
     
     def mdf_state_changed(self, tag):
         if self.format == tag:

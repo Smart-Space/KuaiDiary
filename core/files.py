@@ -178,8 +178,11 @@ def _load_mdf2md(file_path:str) -> str:
     with open(file_path, "rb") as f:
         contents = pickle.load(f)
     tokens = ['\n']
-    for attr, val, _ in contents:
+    quote_tag = False
+    for attr, val, index in contents:
         if attr == "text":
+            if quote_tag and index.endswith('.0'):
+                tokens.append("> ")
             tokens.append(val)
         elif attr == "tagon" or attr == "tagoff":
             match val:
@@ -198,6 +201,11 @@ def _load_mdf2md(file_path:str) -> str:
                         tokens.append("</u>")
                 case "fmt_highlight":
                     tokens.append("==")
+                case "fmt_quote":
+                    if attr == "tagon":
+                        quote_tag = True
+                    if attr == "tagoff":
+                        quote_tag = False
     tokens.append('\n')
     return "".join(tokens).replace("\n", "\n\n")
 
