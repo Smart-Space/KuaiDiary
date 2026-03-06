@@ -19,6 +19,7 @@ class TodayView(BasicTinUI):
     FONT_TAGS = ('fmt_font_bold', 'fmt_font_italic', 'fmt_font_bold_italic')
     TAG_UNDERLINE = 'fmt_underline'
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
+    TAG_HIGHLIGHT = 'fmt_highlight'
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
@@ -49,6 +50,7 @@ class TodayView(BasicTinUI):
             ('', '\uE8DB', self.format_italic),
             ('', '\uE8DC', self.format_underline),
             ('', '\uEDE0', self.format_strikethrough),
+            ('', '\uE7E6', self.format_highlight),
         )
         self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-1]
 
@@ -123,6 +125,7 @@ class TodayView(BasicTinUI):
         self.textbox.tag_configure('fmt_font_bold_italic', font=self.bold_italic_font)
         self.textbox.tag_configure(self.TAG_UNDERLINE, underline=1)
         self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
+        self.textbox.tag_configure(self.TAG_HIGHLIGHT, background="#FFE600" if data.settings['theme'] == 'light' else "#D87700")
 
     def _selection_range(self):
         try:
@@ -201,3 +204,6 @@ class TodayView(BasicTinUI):
     
     def format_strikethrough(self, _):
         self._toggle_simple_tag(self.TAG_STRIKETHROUGH)
+    
+    def format_highlight(self, _):
+        self._toggle_simple_tag(self.TAG_HIGHLIGHT)

@@ -18,11 +18,13 @@ class DatesView(BasicTinUI):
     FONT_TAGS = ('fmt_font_bold', 'fmt_font_italic', 'fmt_font_bold_italic')
     TAG_UNDERLINE = 'fmt_underline'
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
+    TAG_HIGHLIGHT = 'fmt_highlight'
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
         self.diary:str = None
         self.ui = theme(self)
+        self.format = False
         self.init_data()
         self.init_ui()
         self.theme = data.settings['theme']
@@ -75,6 +77,7 @@ class DatesView(BasicTinUI):
             ('', '\uE8DB', self.format_italic),
             ('', '\uE8DC', self.format_underline),
             ('', '\uEDE0', self.format_strikethrough),
+            ('', '\uE7E6', self.format_highlight),
         )
         self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-1]
 
@@ -102,7 +105,7 @@ class DatesView(BasicTinUI):
             diary = f"{month}-{date}"
             if diary != self.diary:
                 if self.diary:
-                    save_one_diary()
+                    save_one_diary(self.format)
                 self.diary = diary
                 self.itemconfig(self.title, text=self.diary)
                 nowday = load_one_diary(diary)
@@ -167,6 +170,7 @@ class DatesView(BasicTinUI):
         self.textbox.tag_configure('fmt_font_bold_italic', font=self.bold_italic_font)
         self.textbox.tag_configure(self.TAG_UNDERLINE, underline=1)
         self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
+        self.textbox.tag_configure(self.TAG_HIGHLIGHT, background="#FFE600" if data.settings['theme'] == 'light' else "#D87700")
 
     def _selection_range(self):
         try:
@@ -221,6 +225,7 @@ class DatesView(BasicTinUI):
                 italic = should_enable
             self._apply_font_flags(idx, next_idx, bold, italic)
             idx = next_idx
+        self.textbox.edit_modified(True)
 
     def _toggle_simple_tag(self, tag_name):
         start, end = self._selection_range()
@@ -231,32 +236,40 @@ class DatesView(BasicTinUI):
             self.textbox.tag_remove(tag_name, start, end)
         else:
             self.textbox.tag_add(tag_name, start, end)
+        self.textbox.edit_modified(True)
 
     def format_bold(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
         self._toggle_font_flag('bold')
-        self.textbox.edit_modified(True)
 
     def format_italic(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
         self._toggle_font_flag('italic')
-        self.textbox.edit_modified(True)
 
     def format_underline(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
         self._toggle_simple_tag(self.TAG_UNDERLINE)
-        self.textbox.edit_modified(True)
 
     def format_strikethrough(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
         self._toggle_simple_tag(self.TAG_STRIKETHROUGH)
-        self.textbox.edit_modified(True)
     
-    first_mdf_change = True
+    def format_highlight(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
+        self._toggle_simple_tag(self.TAG_HIGHLIGHT)
+    
     def mdf_state_changed(self, tag):
+        if self.format == tag:
+            return
         self.format = tag
         if tag:
             self.vp.add_child(self.barbutton, 30, index=1)
         else:
-            if self.first_mdf_change:
-                self.first_mdf_change = False
-                return
             self.vp.pop_child(1)
             self._BasicTinUI__auto_anchor(self.barbutton, (0,-50))
         self.event_generate("<Configure>", x=0, y=0, width=self.winfo_width(), height=self.winfo_height())

@@ -2,6 +2,7 @@
 当天日记
 """
 from tkinter import Text
+from collections import defaultdict
 
 from core.files import load_today_diary, save_today_diary, delete_today_diary
 from core.diary import Diary
@@ -20,15 +21,15 @@ def load_context():
     if not today.format:
         text.insert("end", today.get_contents())
     else:
-        tag_stack = []
+        tag_map = defaultdict(list)
         for attr, val, index in today.get_contents():
             if attr == "text":
                 text.insert(index, val)
             elif attr == "tagon":
-                tag_stack.append((val, index))
+                tag_map[val].append(index)
             elif attr == "tagoff":
-                if tag_stack and tag_stack[-1][0] == val:
-                    start_index = tag_stack.pop()[1]
+                if tag_map[val]:
+                    start_index = tag_map[val].pop()
                     text.tag_add(val, start_index, index)
     text.edit_reset()
     text.edit_modified(False)

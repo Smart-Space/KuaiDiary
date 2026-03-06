@@ -88,16 +88,16 @@ class ExportView(BasicTinUI):
     
     def analyze(self, _):
         if data.months.__len__() == 0:
-            show_warning(self, '无日记内容', '空空如也，快写下你的第一篇日记吧~')
+            show_warning(self, '无日记内容', '空空如也，快写下你的第一篇日记吧~', theme=self.theme)
             return
 
         start_date = self.temp_start
         end_date = self.temp_end
         if start_date > end_date:
-            show_error(self, '日期错误', '开始日期不能大于结束日期')
+            show_error(self, '日期错误', '开始日期不能大于结束日期', theme=self.theme)
             return
         elif start_date == end_date:
-            show_warning(self, '日期错误', '开始日期和结束日期相同')
+            show_warning(self, '日期错误', '开始日期和结束日期相同', theme=self.theme)
             return
         if self.start == start_date and self.end == end_date:
             # 日期未修改，无需分析
@@ -135,7 +135,7 @@ class ExportView(BasicTinUI):
         if not self.analyze(None):
             return
         if not self.diarys or len(self.diarys) == 0:
-            show_info(self, '提示', '没有可导出的内容')
+            show_info(self, '提示', '没有可导出的内容', theme=self.theme)
             return
         output_dir = askdirectory(title='选择导出目录')
         if not output_dir:
