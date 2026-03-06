@@ -94,7 +94,8 @@ class SettingView(BasicTinUI):
         "· {-month}\t无补零月\n" \
         "· {-day}\t\t无补零日\n" \
         "· {content}\t日记内容\n\n" \
-        "日记分隔为每篇日记的分隔符，且会出现在全部日记的首尾。", theme=self.theme)
+        "日记分隔为每篇日记的分隔符，且会出现在全部日记的首尾。\n\n" \
+        "富格式会导出为markdown格式。", theme=self.theme)
     
     def apply_export_setting(self, _):
         content, sep = self.preview_export_format()

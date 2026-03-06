@@ -174,6 +174,33 @@ def load_diary(date:datetime.date) -> Diary:
     diary.update_contents(contents, formatted)
     return diary
 
+def _load_mdf2md(file_path:str) -> str:
+    with open(file_path, "rb") as f:
+        contents = pickle.load(f)
+    tokens = ['\n']
+    for attr, val, _ in contents:
+        if attr == "text":
+            tokens.append(val)
+        elif attr == "tagon" or attr == "tagoff":
+            match val:
+                case "fmt_font_bold":
+                    tokens.append("**")
+                case "fmt_font_italic":
+                    tokens.append("*")
+                case "fmt_font_bold_italic":
+                    tokens.append("***")
+                case "fmt_strikethrough":
+                    tokens.append("~~")
+                case "fmt_underline":
+                    if attr == "tagon":
+                        tokens.append("<u>")
+                    else:
+                        tokens.append("</u>")
+                case "fmt_highlight":
+                    tokens.append("==")
+    tokens.append('\n')
+    return "".join(tokens).replace("\n", "\n\n")
+
 def export_month(month:str) -> str:
     """
     导出月份
@@ -198,8 +225,7 @@ def export_month(month:str) -> str:
             with open(file_path, "r", encoding="utf-8") as f:
                 contents = f.read()
         else:
-            with open(file_path, "rb") as f:
-                contents = pickle.load(f)
+            contents = _load_mdf2md(file_path)
         result = format.replace('{year}', year).replace('{month}', month).replace('{-month}', _month).replace('{day}', day).replace('{-day}', _day).replace('{content}', contents)
         results.append(result)
     return separator+separator.join(results)+separator
@@ -233,6 +259,9 @@ def export_from_to(all_days:list[datetime.date], dir:str, sepyear:bool=False, se
             f.write(separator)
             for d in all_days:
                 diary = load_diary(d)
+                if diary.format:
+                    diary_contents = _load_mdf2md(os.path.join(_month_dir_path(_month_str_from_date(d)), _day_str_from_date(d) + DIARY_FORMAT_SUFFIX))
+                    diary.contents = diary_contents
                 f.write(format.replace('{year}', str(d.year)).replace('{month}', str(d.month)).replace('{day}', str(d.day)).replace('{-month}', str(d.month).lstrip('0')).replace('{-day}', str(d.day).lstrip('0')).replace('{content}', diary.contents))
                 f.write(separator)
         return
@@ -277,6 +306,9 @@ def export_from_to(all_days:list[datetime.date], dir:str, sepyear:bool=False, se
         # 流式写入日记
         if current_file:
             diary = load_diary(d)
+            if diary.format:
+                diary_contents = _load_mdf2md(os.path.join(_month_dir_path(_month_str_from_date(d)), _day_str_from_date(d) + DIARY_FORMAT_SUFFIX))
+                diary.contents = diary_contents
             current_file.write(format.replace('{year}', str(d.year)).replace('{month}', str(d.month)).replace('{day}', str(d.day)).replace('{-month}', str(d.month).lstrip('0')).replace('{-day}', str(d.day).lstrip('0')).replace('{content}', diary.contents))
             current_file.write(separator)
     if current_file:
