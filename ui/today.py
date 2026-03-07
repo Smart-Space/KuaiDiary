@@ -4,8 +4,9 @@
 from tkinter import Text, TclError
 import datetime
 import tkinter.font as tkfont
+from webbrowser import open as open_url
 
-from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel, show_error
+from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel, show_error, ask_string
 from tinui.theme.tinuilight import TinUILight
 
 from control.editor import editorabel
@@ -21,6 +22,7 @@ class TodayView(BasicTinUI):
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
     TAG_HIGHLIGHT = 'fmt_highlight'
     TAG_QUOTE = 'fmt_quote'
+    TAG_LINKPREFIX = 'fmt_link|'
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
@@ -29,12 +31,14 @@ class TodayView(BasicTinUI):
         if self.theme == 'light':
             self.format_colors = {
                 'markbg': '#FFE600',
-                'quotefg': '#888888'
+                'quotefg': '#888888',
+                'linkfg': '#003e92'
             }
         else:
             self.format_colors = {
                 'markbg': '#D87700',
-                'quotefg': '#BBBBBB'
+                'quotefg': '#BBBBBB',
+                'linkfg': '#99ebff'
             }
         self.init_ui()
     
@@ -62,7 +66,8 @@ class TodayView(BasicTinUI):
             ('', '\uE8DC', self.format_underline),
             ('', '\uEDE0', self.format_strikethrough),
             ('', '\uE7E6', self.format_highlight),
-            ('', '\uE9AA', self.format_quote)
+            ('', '\uE71B', self.format_link),
+            ('', '\uE9AA', self.format_quote),
         )
         self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-1]
 
@@ -136,6 +141,7 @@ class TodayView(BasicTinUI):
         self.textbox.tag_configure('fmt_font_italic', font=self.italic_font)
         self.textbox.tag_configure('fmt_font_bold_italic', font=self.bold_italic_font)
         self.textbox.tag_configure(self.TAG_UNDERLINE, underline=1)
+        self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
         self.textbox.tag_configure(self.TAG_HIGHLIGHT, background=self.format_colors['markbg'])
         self.textbox.tag_configure(self.TAG_QUOTE, lmargin1=20, lmargin2=20, foreground=self.format_colors['quotefg'])
 
@@ -210,6 +216,7 @@ class TodayView(BasicTinUI):
     
     def format_italic(self, _):
         self._toggle_font_flag('italic')
+        return "break"
     
     def format_underline(self, _):
         self._toggle_simple_tag(self.TAG_UNDERLINE)
@@ -221,8 +228,6 @@ class TodayView(BasicTinUI):
         self._toggle_simple_tag(self.TAG_HIGHLIGHT)
     
     def format_quote(self, _):
-        if self.textbox.cget('state') == 'disabled':
-            return
         start, _ = self._selection_range()
         if not start:
             start = self.textbox.index('insert')
@@ -232,3 +237,32 @@ class TodayView(BasicTinUI):
             self.textbox.tag_remove(self.TAG_QUOTE, line_start, line_end)
         else:
             self.textbox.tag_add(self.TAG_QUOTE, line_start, line_end)
+        self.textbox.edit_modified(True)
+    
+    def _link_tag_config(self, tag_name, url):
+        self.textbox.tag_configure(tag_name, foreground=self.format_colors['linkfg'], underline=1)
+        self.textbox.tag_bind(tag_name, '<Control-Button-1>', lambda _: open_url(url))
+
+    def format_link(self, _):
+        start, end = self._selection_range()
+        if not start or not end:
+            return
+        context = self.textbox.get(start, end)
+        original_url = ''
+        for tag in self.textbox.tag_names(start):
+            if tag.startswith(self.TAG_LINKPREFIX):
+                original_url = tag[len(self.TAG_LINKPREFIX):]
+                break
+        url = ask_string(self.master, '输入链接', f'请输入 {context} 的链接地址：', text=original_url, theme=self.theme)
+        if url is None:
+            return
+        elif url == '':
+            for tag in self.textbox.tag_names(start):
+                if tag.startswith(self.TAG_LINKPREFIX):
+                    self.textbox.tag_remove(tag, start, end)
+                    self.textbox.edit_modified(True)
+                    return
+            return
+        tag_name = self.TAG_LINKPREFIX + url
+        self._link_tag_config(tag_name, url)
+        self._toggle_simple_tag(tag_name)

@@ -174,11 +174,13 @@ def load_diary(date:datetime.date) -> Diary:
     diary.update_contents(contents, formatted)
     return diary
 
+TAG_LINKPREFIX = 'fmt_link|'
 def _load_mdf2md(file_path:str) -> str:
     with open(file_path, "rb") as f:
         contents = pickle.load(f)
     tokens = ['\n']
     quote_tag = False
+    link_tag = False
     for attr, val, index in contents:
         if attr == "text":
             if quote_tag and index.endswith('.0'):
@@ -204,8 +206,18 @@ def _load_mdf2md(file_path:str) -> str:
                 case "fmt_quote":
                     if attr == "tagon":
                         quote_tag = True
-                    if attr == "tagoff":
+                    else:
                         quote_tag = False
+                case _ if val.startswith(TAG_LINKPREFIX):
+                    if attr == "tagon":
+                        if link_tag:
+                            continue
+                        link_tag = True
+                        tokens.append('[')
+                    else:
+                        link_tag = False
+                        url = val[len(TAG_LINKPREFIX):]
+                        tokens.append(f']({url})')
     tokens.append('\n')
     return "".join(tokens).replace("\n", "\n\n")
 

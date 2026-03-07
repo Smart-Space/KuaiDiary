@@ -9,6 +9,7 @@ from core.diary import Diary
 
 text:Text|None = None
 today:Diary|None = None
+TAG_LINKPREFIX = 'fmt_link|'
 
 def reg_textbox(textbox:Text):
     global text
@@ -30,7 +31,15 @@ def load_context():
             elif attr == "tagoff":
                 if tag_map[val]:
                     start_index = tag_map[val].pop()
+                    if val.startswith(TAG_LINKPREFIX):
+                        url = val[len(TAG_LINKPREFIX):]
+                        text.master._link_tag_config(val, url)
                     text.tag_add(val, start_index, index)
+        while tag_map:
+            # 处理未关闭的标签
+            val, indices = tag_map.popitem()
+            for start_index in indices:
+                text.tag_add(val, start_index, "end")
     text.edit_reset()
     text.edit_modified(False)
     return today

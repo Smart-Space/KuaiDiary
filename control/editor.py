@@ -18,6 +18,9 @@ def editorabel(text:Text):
     text.bind("<Control-z>", __editor_undo)
     text.bind("<Control-y>", __editor_redo)
     text.bind("<Key>", __editor_input)
+    text.bind("<Control-b>", text.master.format_bold)
+    text.bind("<Control-i>", text.master.format_italic)
+    text.bind("<Control-u>", text.master.format_underline)
 
 def __editor_undo(e):
     try:
