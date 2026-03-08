@@ -87,6 +87,7 @@ class TodayView(BasicTinUI):
             self.mdf_check_funcs.off()
 
         self.bind("<Configure>", self.on_resize)
+        self.textbox_kr_quote_id = None
     
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width-1, event.height-1)
@@ -99,12 +100,14 @@ class TodayView(BasicTinUI):
         self.format = tag
         if tag:
             self.vp.add_child(self.barbutton, 30, index=1)
+            self.textbox_kr_quote_id = self.textbox.bind('<KeyRelease>', self._sync_quote_for_current_line, True)
         else:
             if self.first_mdf_change:
                 self.first_mdf_change = False
                 return
             self.vp.pop_child(1)
             self._BasicTinUI__auto_anchor(self.barbutton, (0,-50))
+            self.textbox.unbind('<KeyRelease>', self.textbox_kr_quote_id)
         self.event_generate("<Configure>", x=0, y=0, width=self.winfo_width(), height=self.winfo_height())
     
     def save_this_month(self, _):
@@ -144,6 +147,7 @@ class TodayView(BasicTinUI):
         self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
         self.textbox.tag_configure(self.TAG_HIGHLIGHT, background=self.format_colors['markbg'])
         self.textbox.tag_configure(self.TAG_QUOTE, lmargin1=20, lmargin2=20, foreground=self.format_colors['quotefg'])
+        self.textbox.tag_raise('sel')
 
     def _selection_range(self):
         try:
@@ -227,12 +231,34 @@ class TodayView(BasicTinUI):
     def format_highlight(self, _):
         self._toggle_simple_tag(self.TAG_HIGHLIGHT)
     
+    def _line_range(self, index):
+        line_start = self.textbox.index(f'{index} linestart')
+        line_end = self.textbox.index(f'{index} lineend +1c')
+        return line_start, line_end
+
+    def _line_has_quote(self, index):
+        # 用 lineend 位置判断该行是否是 quote 行（空行时也可判断）
+        probe = self.textbox.index(f'{index} lineend')
+        return self.TAG_QUOTE in self.textbox.tag_names(probe)
+
+    def _sync_quote_for_current_line(self, _):
+        insert = self.textbox.index('insert')
+        if not insert.endswith('.1'):
+            # 不是行首，不处理
+            return
+        if self._line_has_quote(insert):
+            line_start, line_end = self._line_range(insert)
+            self.textbox.tag_add(self.TAG_QUOTE, line_start, line_end)
+    
     def format_quote(self, _):
-        start, _ = self._selection_range()
+        start, end = self._selection_range()
         if not start:
             start = self.textbox.index('insert')
-        line_start = self.textbox.index(f'{start} linestart')
-        line_end = self.textbox.index(f'{start} lineend +1c')
+            line_start = self.textbox.index(f'{start} linestart')
+            line_end = self.textbox.index(f'{start} lineend +1c')
+        else:
+            line_start = self.textbox.index(f'{start} linestart')
+            line_end = self.textbox.index(f'{end} lineend +1c')
         if self.TAG_QUOTE in self.textbox.tag_names(start):
             self.textbox.tag_remove(self.TAG_QUOTE, line_start, line_end)
         else:
