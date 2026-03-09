@@ -21,6 +21,10 @@ class DatesView(BasicTinUI):
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
     TAG_HIGHLIGHT = 'fmt_highlight'
     TAG_QUOTE = 'fmt_quote'
+    TAG_ALIGN_LEFT = 'fmt_align_left'
+    TAG_ALIGN_CENTER = 'fmt_align_center'
+    TAG_ALIGN_RIGHT = 'fmt_align_right'
+    ALIGN_TAGS = (TAG_ALIGN_LEFT, TAG_ALIGN_CENTER, TAG_ALIGN_RIGHT)
     TAG_LINKPREFIX = 'fmt_link|'
 
     def __init__(self, master=None, theme=TinUILight):
@@ -94,7 +98,11 @@ class DatesView(BasicTinUI):
             ('', '\uEDE0', self.format_strikethrough),
             ('', '\uE7E6', self.format_highlight),
             ('', '\uE71B', self.format_link),
+            '',
             ('', '\uE9AA', self.format_quote),
+            ('', '\uE8E4', self.format_align_left),
+            ('', '\uE8E3', self.format_align_center),
+            ('', '\uE8E2', self.format_align_right),
         )
         self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-1]
 
@@ -190,6 +198,9 @@ class DatesView(BasicTinUI):
         self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
         self.textbox.tag_configure(self.TAG_HIGHLIGHT, background=self.format_colors['markbg'])
         self.textbox.tag_configure(self.TAG_QUOTE, lmargin1=20, lmargin2=20, foreground=self.format_colors['quotefg'])
+        self.textbox.tag_configure(self.TAG_ALIGN_LEFT, justify='left')
+        self.textbox.tag_configure(self.TAG_ALIGN_CENTER, justify='center')
+        self.textbox.tag_configure(self.TAG_ALIGN_RIGHT, justify='right')
         self.textbox.tag_raise('sel')
 
     def _selection_range(self):
@@ -299,9 +310,39 @@ class DatesView(BasicTinUI):
         if not insert.endswith('.1'):
             # 不是行首，不处理
             return
+        line_start, line_end = self._line_range(insert)
         if self._line_has_quote(insert):
-            line_start, line_end = self._line_range(insert)
             self.textbox.tag_add(self.TAG_QUOTE, line_start, line_end)
+        align_tag = self._line_align_tag(insert)
+        if align_tag:
+            for tag in self.ALIGN_TAGS:
+                self.textbox.tag_remove(tag, line_start, line_end)
+            self.textbox.tag_add(align_tag, line_start, line_end)
+
+    def _line_align_tag(self, index):
+        probe = self.textbox.index(f'{index} lineend')
+        tags = self.textbox.tag_names(probe)
+        for tag in self.ALIGN_TAGS:
+            if tag in tags:
+                return tag
+        return None
+
+    def _format_align(self, target_tag):
+        start, end = self._selection_range()
+        if not start:
+            start = self.textbox.index('insert')
+            line_start = self.textbox.index(f'{start} linestart')
+            line_end = self.textbox.index(f'{start} lineend +1c')
+        else:
+            line_start = self.textbox.index(f'{start} linestart')
+            line_end = self.textbox.index(f'{end} lineend +1c')
+        if target_tag in self.textbox.tag_names(start):
+            self.textbox.tag_remove(target_tag, line_start, line_end)
+        else:
+            for tag in self.ALIGN_TAGS:
+                self.textbox.tag_remove(tag, line_start, line_end)
+            self.textbox.tag_add(target_tag, line_start, line_end)
+        self.textbox.edit_modified(True)
     
     def format_quote(self, _):
         if self.textbox.cget('state') == 'disabled':
@@ -319,6 +360,21 @@ class DatesView(BasicTinUI):
         else:
             self.textbox.tag_add(self.TAG_QUOTE, line_start, line_end)
         self.textbox.edit_modified(True)
+
+    def format_align_left(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
+        self._format_align(self.TAG_ALIGN_LEFT)
+
+    def format_align_center(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
+        self._format_align(self.TAG_ALIGN_CENTER)
+
+    def format_align_right(self, _):
+        if self.textbox.cget('state') == 'disabled':
+            return
+        self._format_align(self.TAG_ALIGN_RIGHT)
     
     def _link_tag_config(self, tag_name, url):
         self.textbox.tag_configure(tag_name, foreground=self.format_colors['linkfg'], underline=1)

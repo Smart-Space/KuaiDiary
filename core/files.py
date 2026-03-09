@@ -208,6 +208,21 @@ def _load_mdf2md(file_path:str) -> str:
                         quote_tag = True
                     else:
                         quote_tag = False
+                case "fmt_align_left":
+                    if attr == "tagon":
+                        tokens.append('<div align="left">')
+                    else:
+                        tokens.append('</div>')
+                case "fmt_align_center":
+                    if attr == "tagon":
+                        tokens.append('<div align="center">')
+                    else:
+                        tokens.append('</div>')
+                case "fmt_align_right":
+                    if attr == "tagon":
+                        tokens.append('<div align="right">')
+                    else:
+                        tokens.append('</div>')
                 case _ if val.startswith(TAG_LINKPREFIX):
                     if attr == "tagon":
                         if link_tag:
