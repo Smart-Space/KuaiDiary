@@ -6,7 +6,7 @@ import tkinter.font as tkfont
 from webbrowser import open as open_url
 
 import data
-from tinui import ask_string
+from tinui import ask_string, show_question
 
 def editorabel(text:Text):
     if data.settings['theme'] == 'light':
@@ -230,10 +230,16 @@ class RichTextEditor:
             self.textbox.tag_add(target_tag, line_start, line_end)
         self.textbox.edit_modified(True)
 
+    def open_url(self, url):
+        if data.settings['ask_url']:
+            if not show_question(self.master, '打开链接', f'是否要打开链接：\n{url}', theme=self.theme):
+                return
+        open_url(url)
+
     def _link_tag_config(self, tag_name, url):
         """配置链接标签"""
         self.textbox.tag_configure(tag_name, foreground=self.format_colors['linkfg'], underline=1)
-        self.textbox.tag_bind(tag_name, '<Control-Button-1>', lambda _: open_url(url))
+        self.textbox.tag_bind(tag_name, '<Control-Button-1>', lambda _: self.open_url(url))
 
     def format_bold(self, event=None):
         """格式化粗体"""

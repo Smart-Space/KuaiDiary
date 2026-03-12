@@ -51,6 +51,7 @@ class SettingView(BasicTinUI):
             'about_storage_path': self.about_storage_path,
             'change_theme': self.change_theme,
             'change_window_action': self.change_window_action,
+            'toggle_ask_url': None,
         })
         with open("./assets/settingui.xml", "r", encoding="utf-8") as f:
             xml = f.read().replace("%VERSION%", data.version)
@@ -64,6 +65,10 @@ class SettingView(BasicTinUI):
             self.theme_radiobox.select(1)
         self.win_segmentbutton = self.uixml.tags['win_segmentbutton'][-2]
         self.win_segmentbutton.select(data.settings['window_action'])
+        ask_url_checkbutton = self.uixml.tags['ask_url_checkbutton'][-2]
+        if data.settings['ask_url']:
+            ask_url_checkbutton.on()
+        self.uixml.funcs['toggle_ask_url'] = self.toggle_ask_url
         
         # storage
         self.st_entry:Entry = self.uixml.tags['st_entry'][0]
@@ -151,3 +156,7 @@ class SettingView(BasicTinUI):
         if now != data.settings['window_action']:
             data.settings['window_action'] = now
             save_settings()
+    
+    def toggle_ask_url(self, tag):
+        data.settings['ask_url'] = tag
+        save_settings()

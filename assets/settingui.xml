@@ -25,6 +25,9 @@
 			<paragraph text='窗口启动'></paragraph>
 			<segmentbutton content='("无要求","最大化","居中","上次位置")' command='self.funcs["change_window_action"]'>win_segmentbutton</segmentbutton>
 		</line>
+		<line>
+			<checkbutton text='打开URL前询问' command='self.funcs["toggle_ask_url"]'>ask_url_checkbutton</checkbutton>
+		</line>
 	</line>
 	<line>
 		<line pady='10'><title text='存储设置' size='2'></title></line>

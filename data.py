@@ -19,6 +19,7 @@ settings:dict = {
     "theme": "light", # 主题
     "window_action": 0, # ("无要求","最大化","居中","记住上次位置")
     "window_action_pos": (0, 0, 800, 600), # 窗口位置
+    "ask_url": False, # 打开URL前是否询问
     "storage_path": "./datas", # 数据存储路径
     "format_content": "\n{year}-{month}-{day}\n{content}\n", # 内容格式
     "format_sep": "==========", # 分隔线格式
