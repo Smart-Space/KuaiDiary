@@ -2,6 +2,7 @@
 以往日期选择与日志修改
 """
 from tkinter import Text
+from tkinter.colorchooser import askcolor
 from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel, show_error
 from tinui.theme.tinuilight import TinUILight
 
@@ -89,7 +90,17 @@ class DatesView(BasicTinUI):
             ('', '\uE8E3', self.rich_editor.format_align_center),
             ('', '\uE8E2', self.rich_editor.format_align_right),
         )
-        self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-1]
+        barbuttons, self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-2:]
+        flyoutui,_,self.flyout_hide,_ = self.ui.add_flyout(barbuttons[4][-1], width=120, height=120, bind='<Button-3>', anchor='s')
+        flyoutui.add_button((5,5), text='    ', bg='#FFE600', activebg='#FFE600', linew=0, command=lambda _: self.higlight_default_other_color('#FFE600'))
+        flyoutui.add_button((45,5), text='    ', bg='#D87700', activebg='#D87700', linew=0, command=lambda _: self.higlight_default_other_color('#D87700'))
+        flyoutui.add_button((85,5), text='    ', bg='#ff0000', activebg='#ff0000', linew=0, command=lambda _: self.higlight_default_other_color('#ff0000'))
+        flyoutui.add_button((5,45), text='    ', bg='#008000', activebg='#008000', linew=0, command=lambda _: self.higlight_default_other_color('#008000'))
+        flyoutui.add_button((45,45), text='    ', bg='#0000ff', activebg='#0000ff', linew=0, command=lambda _: self.higlight_default_other_color('#0000ff'))
+        flyoutui.add_button((85,45), text='    ', bg='#4b0082', activebg='#4b0082', linew=0, command=lambda _: self.higlight_default_other_color('#4b0082'))
+        flyoutui.add_button((5,85), text='    ', bg='#ee82ee', activebg='#ee82ee', linew=0, command=lambda _: self.higlight_default_other_color('#ee82ee'))
+        flyoutui.add_button((45,85), text='🚫', linew=0, command=self.format_remove_color)
+        flyoutui.add_button((83,85), text='🎨', linew=0, command=self.highlight_other_color)
 
         self.bind("<Configure>", self.on_resize)
         self.textbox_kr_quote_id = None
@@ -182,3 +193,19 @@ class DatesView(BasicTinUI):
             self._BasicTinUI__auto_anchor(self.barbutton, (0,-50))
             self.textbox.unbind('<KeyRelease>', self.textbox_kr_quote_id)
         self.event_generate("<Configure>", x=0, y=0, width=self.winfo_width(), height=self.winfo_height())
+
+    def higlight_default_other_color(self, color):
+        self.flyout_hide(None)
+        self.rich_editor.format_other_color(color)
+        self.textbox.tag_raise('sel')
+
+    def highlight_other_color(self, _):
+        self.flyout_hide(None)
+        color = askcolor(parent=self.master, title='选择高亮颜色')[1]
+        if color:
+            self.rich_editor.format_other_color(color)
+        self.textbox.tag_raise('sel')
+    
+    def format_remove_color(self, _):
+        self.flyout_hide(None)
+        self.rich_editor.format_remove_color(None)

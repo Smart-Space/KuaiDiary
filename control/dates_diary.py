@@ -12,6 +12,7 @@ from core.diary import Diary
 text:Text|None = None
 nowday:Diary|None = None
 TAG_LINKPREFIX = 'fmt_link|'
+TAG_HIGHLIGHT = 'fmt_highlight|'
 
 def reg_ui(t:Text):
     global text
@@ -31,6 +32,8 @@ def load_one_diary(date:str):
                 text.insert(index, val)
             elif attr == "tagon":
                 tag_map[val].append(index)
+                if val.startswith(TAG_HIGHLIGHT):
+                    text.tag_configure(val, background=val[len(TAG_HIGHLIGHT):])
             elif attr == "tagoff":
                 if tag_map[val]:
                     start_index = tag_map[val].pop()
@@ -46,6 +49,7 @@ def load_one_diary(date:str):
     text.config(state="disabled")
     text.edit_reset()
     text.edit_modified(False)
+    text.tag_raise('sel')
     return nowday
 
 def get_format_context() -> str:

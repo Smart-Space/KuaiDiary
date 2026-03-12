@@ -60,6 +60,7 @@ class RichTextEditor:
     TAG_ALIGN_RIGHT = 'fmt_align_right'
     ALIGN_TAGS = (TAG_ALIGN_LEFT, TAG_ALIGN_CENTER, TAG_ALIGN_RIGHT)
     TAG_LINKPREFIX = 'fmt_link|'
+    TAG_HIGHLIGHTPREFIX = 'fmt_highlight|'
 
     @staticmethod
     def get_format_colors(theme):
@@ -271,6 +272,31 @@ class RichTextEditor:
         if self.textbox.cget('state') == 'disabled':
             return
         self._toggle_simple_tag(self.TAG_HIGHLIGHT)
+    
+    def format_other_color(self, color):
+        """格式化其他颜色"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        start, end = self._selection_range()
+        if not start:
+            return
+        for tag in self.textbox.tag_names(start):
+            if tag.startswith(self.TAG_HIGHLIGHTPREFIX):
+                self.textbox.tag_remove(tag, start, end)
+        tag_name = f'{self.TAG_HIGHLIGHT}|{color}'
+        self.textbox.tag_configure(tag_name, background=color)
+        self._toggle_simple_tag(tag_name)
+    
+    def format_remove_color(self, event=None):
+        """移除颜色格式"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        start, end = self._selection_range()
+        if not start:
+            return
+        for tag in self.textbox.tag_names(start):
+            if tag.startswith(self.TAG_HIGHLIGHTPREFIX):
+                self.textbox.tag_remove(tag, start, end)
 
     def format_quote(self, event=None):
         """格式化引用"""
