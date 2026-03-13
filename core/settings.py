@@ -30,6 +30,7 @@ def init_settings() -> None:
     if settings:
         data.settings.update(settings)
     data.work_dir = data.settings.get("storage_path", "./datas")
+    data.img_dir = data.settings.get("img_path", "./st_imgs")
     data.UITheme = TinUILight if data.settings.get("theme", "light") == "light" else TinUIDark
 
 def save_settings() -> None:

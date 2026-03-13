@@ -2,7 +2,7 @@
 设置界面
 """
 import webbrowser
-from tkinter import Text, Entry, Tk
+from tkinter import Text, Entry
 from tkinter.filedialog import askdirectory
 
 from tinui import BasicTinUI, TinUIXml, show_info
@@ -10,6 +10,7 @@ from tinui.theme.tinuilight import TinUILight
 
 import data
 from core.settings import save_settings
+from core.image_db import image_db
 from control.settings import open_folder, copy_to
 
 
@@ -161,6 +162,7 @@ class SettingView(BasicTinUI):
         copy_to(data.img_dir, new_path)
         # 更新文件目录
         data.img_dir = new_path
+        image_db.reopen()
     
     def open_img_path(self, _):
         open_folder(data.img_dir)

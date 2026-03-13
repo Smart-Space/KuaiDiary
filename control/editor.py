@@ -5,15 +5,12 @@ from tkinter import Text, TclError
 from tkinter.filedialog import askopenfilename
 import tkinter.font as tkfont
 import os
-import re
-import shutil
-import datetime
-import random
 from webbrowser import open as open_url
 
 import data
 from tinui import ask_string, show_question
 from PIL import Image, ImageTk
+from core.image_db import image_db
 
 def editorabel(text:Text):
     if data.settings['theme'] == 'light':
@@ -250,20 +247,10 @@ class RichTextEditor:
         self.textbox.tag_configure(tag_name, foreground=self.format_colors['linkfg'], underline=1)
         self.textbox.tag_bind(tag_name, '<Control-Button-1>', lambda _: self.open_url(url))
 
-    def _sanitize_image_name(self, file_path:str) -> str:
-        """处理图片名称"""
-        base_name = os.path.basename(file_path)
-        name, ext = os.path.splitext(base_name)
-        safe_name = re.sub(r'[^A-Za-z0-9_-]+', '_', name).strip('_')
-        if not safe_name:
-            safe_name = "image"
-        ext = ext.lower()
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        rand_suffix = f"{random.randint(0, 999999):06d}"
-        return f"{safe_name}_{timestamp}_{rand_suffix}{ext}"
-
     def _load_image_from_path(self, image_path:str, image_name:str):
         """加载图片并缓存"""
+        if image_name in self.images:
+            return self.images[image_name]
         img = Image.open(image_path)
         width = self.textbox.winfo_width()
         if img.width > width:
@@ -276,6 +263,9 @@ class RichTextEditor:
 
     def insert_image_by_name(self, image_name:str, index:str):
         """按名称插入图片"""
+        ext_name = os.path.splitext(image_name)[1].lower()
+        if '#' in ext_name:
+            image_name = os.path.splitext(image_name)[0] + ext_name.split('#')[0]
         image_path = os.path.join(data.img_dir, image_name)
         if not os.path.exists(image_path):
             return
@@ -298,15 +288,12 @@ class RichTextEditor:
         )
         if not file_path:
             return
-        image_name = self._sanitize_image_name(file_path)
-        target_path = os.path.join(data.img_dir, image_name)
-        if os.path.abspath(file_path) != os.path.abspath(target_path):
-            try:
-                shutil.copy2(file_path, target_path)
-            except Exception:
-                return
+        image_name = image_db.ensure_image(file_path)
+        if not image_name:
+            return
+        image_path = os.path.join(data.img_dir, image_name)
         try:
-            photo = self._load_image_from_path(target_path, image_name)
+            photo = self._load_image_from_path(image_path, image_name)
         except Exception:
             return
         self.textbox.image_create('insert', image=photo)

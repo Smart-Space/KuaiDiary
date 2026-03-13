@@ -94,6 +94,7 @@ KuaiDiary/
 ├── core/                # Core business logic
 │   ├── diary.py         # Diary data model
 │   ├── files.py         # File I/O operations
+|   ├── image_db.py      # Image data base
 │   └── settings.py      # Settings management
 ├── ui/                  # UI components
 │   ├── mainwindow.py    # Main window

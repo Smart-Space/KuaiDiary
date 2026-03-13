@@ -14,6 +14,7 @@ import data
 from ui.mainwindow import MainWindow
 from core.files import init_work_dir
 from core.settings import init_settings
+from core.image_db import image_db
 
 def activate_existing_instance():
     """向已运行的实例发送激活信号"""
@@ -65,6 +66,7 @@ def start_server():
 init_settings()
 mainwindow = MainWindow()
 init_work_dir()
+image_db.init_db()
 threading.Thread(target=start_server, daemon=True).start()
 mainwindow.init_ui()
 

@@ -11,6 +11,7 @@ from ui.export import ExportView
 from ui.setting import SettingView
 import data
 from core.settings import save_settings
+from core.image_db import image_db
 
 class MainWindow(Tk):
 
@@ -108,5 +109,7 @@ class MainWindow(Tk):
         if data.settings['window_action'] == 3:
             data.settings['window_action_pos'] = (self.winfo_rootx(), self.winfo_rooty(), self.winfo_width(), self.winfo_height())
             save_settings()
+
+        image_db.close_db()
         
         self.destroy()
