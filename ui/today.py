@@ -76,14 +76,15 @@ class TodayView(BasicTinUI):
         flyoutui.add_button((45,85), text='🚫', linew=0, command=self.format_remove_color)
         flyoutui.add_button((83,85), text='🎨', linew=0, command=self.highlight_other_color)
 
+        self.bind("<Configure>", self.on_resize)
+        self.textbox_kr_quote_id = None
+    
+    def load_diary(self):
         today = load_context()
         if today.format:
             self.mdf_check_funcs.on()
         else:
             self.mdf_check_funcs.off()
-
-        self.bind("<Configure>", self.on_resize)
-        self.textbox_kr_quote_id = None
     
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width-1, event.height-1)

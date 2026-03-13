@@ -266,8 +266,6 @@ class RichTextEditor:
         """加载图片并缓存"""
         img = Image.open(image_path)
         width = self.textbox.winfo_width()
-        if width == 1:
-            width = self.textbox.winfo_reqwidth()
         if img.width > width:
             ratio = width / img.width
             new_size = (width, int(img.height * ratio))

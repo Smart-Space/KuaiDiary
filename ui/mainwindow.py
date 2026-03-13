@@ -69,6 +69,8 @@ class MainWindow(Tk):
         self.export_view = ExportView(self.child[0], self.theme)
         self.setting_view = SettingView(self.child[0], self.theme)
         self.now_view.pack(fill="both", expand=True)
+
+        self.after(100, self.today_view.load_diary)
     
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width, event.height)
