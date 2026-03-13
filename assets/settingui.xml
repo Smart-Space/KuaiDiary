@@ -38,6 +38,13 @@
 			<toolbutton text='' icon='&#xE8DA;' command='self.funcs["open_storage_path"]'></toolbutton>
 			<toolbutton text='' icon='&#xE897;' command='self.funcs["about_storage_path"]'></toolbutton>
 		</line>
+		<line anchor='w' lineanchor='nw' pady='10'>
+			<paragraph text='图片位置'></paragraph>
+			<entry width="300">img_entry</entry>
+			<button2 icon='&#xE712;' text='' command='self.funcs["select_img_path"]'></button2>
+			<toolbutton text='' icon='&#xE8DA;' command='self.funcs["open_img_path"]'></toolbutton>
+			<toolbutton text='' icon='&#xE897;' command='self.funcs["about_img_path"]'></toolbutton>
+		</line>
 	</line>
 	<line>
 		<line pady='10'>

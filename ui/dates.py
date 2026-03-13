@@ -85,6 +85,7 @@ class DatesView(BasicTinUI):
             ('', '\uE7E6', self.rich_editor.format_highlight),
             ('', '\uE71B', self.rich_editor.format_link),
             '',
+            ('', '\uE91B', self.rich_editor.format_insert_image),
             ('', '\uE9AA', self.rich_editor.format_quote),
             ('', '\uE8E4', self.rich_editor.format_align_left),
             ('', '\uE8E3', self.rich_editor.format_align_center),
@@ -171,6 +172,9 @@ class DatesView(BasicTinUI):
     
     def _link_tag_config(self, val, url):
         self.rich_editor._link_tag_config(val, url)
+
+    def insert_image_by_name(self, image_name, index):
+        self.rich_editor.insert_image_by_name(image_name, index)
 
     def format_bold(self, event):
         return self.rich_editor.format_bold(event)

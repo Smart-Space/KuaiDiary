@@ -49,6 +49,9 @@ class SettingView(BasicTinUI):
             'select_storage_path': self.select_storage_path,
             'open_storage_path': self.open_storage_path,
             'about_storage_path': self.about_storage_path,
+            'select_img_path': self.select_img_path,
+            'open_img_path': self.open_img_path,
+            'about_img_path': self.about_img_path,
             'change_theme': self.change_theme,
             'change_window_action': self.change_window_action,
             'toggle_ask_url': None,
@@ -77,6 +80,13 @@ class SettingView(BasicTinUI):
         self.st_entry.config(state="normal", readonlybackground=rbg)
         self.st_entry.insert(0, data.work_dir)
         self.st_entry.config(state="readonly")
+
+        self.img_entry:Entry = self.uixml.tags['img_entry'][0]
+        img_entry_func = self.uixml.tags['img_entry'][1]
+        img_entry_func.disable(fg=rfg, bg=rbg)
+        self.img_entry.config(state="normal", readonlybackground=rbg)
+        self.img_entry.insert(0, data.img_dir)
+        self.img_entry.config(state="readonly")
 
         # format
         self.fm_text:Text = self.uixml.tags['fm_textbox'][0]
@@ -136,6 +146,27 @@ class SettingView(BasicTinUI):
     
     def about_storage_path(self, _):
         show_info(self.master, "存储目录说明", "更改存储目录后，快日记会迁移所有日记。\n当日记较多时，请等待片刻。", theme=self.theme)
+    
+    def select_img_path(self, _):
+        new_path = askdirectory(initialdir=data.img_dir, title="选择图片存储目录")
+        if not new_path:
+            return
+        data.settings["img_path"] = new_path
+        self.img_entry.config(state="normal")
+        self.img_entry.delete(0, "end")
+        self.img_entry.insert(0, new_path)
+        self.img_entry.config(state="readonly")
+        save_settings()
+        # 迁移原目录下的所有文件
+        copy_to(data.img_dir, new_path)
+        # 更新文件目录
+        data.img_dir = new_path
+    
+    def open_img_path(self, _):
+        open_folder(data.img_dir)
+
+    def about_img_path(self, _):
+        show_info(self.master, "图片目录说明", "更改图片目录后，快日记会迁移所有图片。\n当图片较多时，请等待片刻。", theme=self.theme)
 
     def change_theme(self, t):
         if t == '明亮':

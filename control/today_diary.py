@@ -27,6 +27,8 @@ def load_context():
         for attr, val, index in today.get_contents():
             if attr == "text":
                 text.insert(index, val)
+            elif attr == "image":
+                text.master.insert_image_by_name(val, index)
             elif attr == "tagon":
                 tag_map[val].append(index)
                 if val.startswith(TAG_HIGHLIGHT):

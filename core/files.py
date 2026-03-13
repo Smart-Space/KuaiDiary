@@ -78,6 +78,8 @@ def init_work_dir():
     """
     if not os.path.exists(data.work_dir):
         os.makedirs(data.work_dir)
+    if not os.path.exists(data.img_dir):
+        os.makedirs(data.img_dir)
     months:dict[str, list[str]] = {}
     now_month = datetime.date.today().strftime("%Y-%m")
     now_day = datetime.date.today().strftime("%d")
@@ -175,6 +177,7 @@ def load_diary(date:datetime.date) -> Diary:
     return diary
 
 TAG_LINKPREFIX = 'fmt_link|'
+TAG_HIGHLIGHTPREFIX = 'fmt_highlight|'
 def _load_mdf2md(file_path:str) -> str:
     with open(file_path, "rb") as f:
         contents = pickle.load(f)
@@ -186,6 +189,9 @@ def _load_mdf2md(file_path:str) -> str:
             if quote_tag and index.endswith('.0'):
                 tokens.append("> ")
             tokens.append(val)
+        elif attr == "image":
+            image_path = os.path.abspath(os.path.join(data.img_dir, val)).replace('\\', '/')
+            tokens.append(f"![{val}]({image_path})")
         elif attr == "tagon" or attr == "tagoff":
             match val:
                 case "fmt_font_bold":
@@ -233,6 +239,8 @@ def _load_mdf2md(file_path:str) -> str:
                         link_tag = False
                         url = val[len(TAG_LINKPREFIX):]
                         tokens.append(f']({url})')
+                case _ if val.startswith(TAG_HIGHLIGHTPREFIX):
+                    tokens.append("==")
     tokens.append('\n')
     return "".join(tokens).replace("\n", "\n\n")
 

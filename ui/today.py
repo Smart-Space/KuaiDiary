@@ -49,7 +49,6 @@ class TodayView(BasicTinUI):
         self.rich_editor.init_text_tags()
         editorabel(self.textbox)
         reg_textbox(self.textbox)
-        today = load_context()
 
         barbutton_text = (
             ('', '\uE8DD', self.format_bold),
@@ -59,6 +58,7 @@ class TodayView(BasicTinUI):
             ('', '\uE7E6', self.rich_editor.format_highlight),
             ('', '\uE71B', self.rich_editor.format_link),
             '',
+            ('', '\uE91B', self.rich_editor.format_insert_image),
             ('', '\uE9AA', self.rich_editor.format_quote),
             ('', '\uE8E4', self.rich_editor.format_align_left),
             ('', '\uE8E3', self.rich_editor.format_align_center),
@@ -76,6 +76,7 @@ class TodayView(BasicTinUI):
         flyoutui.add_button((45,85), text='🚫', linew=0, command=self.format_remove_color)
         flyoutui.add_button((83,85), text='🎨', linew=0, command=self.highlight_other_color)
 
+        today = load_context()
         if today.format:
             self.mdf_check_funcs.on()
         else:
@@ -130,6 +131,9 @@ class TodayView(BasicTinUI):
     
     def _link_tag_config(self, val, url):
         self.rich_editor._link_tag_config(val, url)
+
+    def insert_image_by_name(self, image_name, index):
+        self.rich_editor.insert_image_by_name(image_name, index)
 
     def format_bold(self, event):
         return self.rich_editor.format_bold(event)

@@ -182,6 +182,7 @@ cython_debug/
 
 # apps data
 datas/
+st_imgs/
 settings/
 .opencode/
 search_index.db

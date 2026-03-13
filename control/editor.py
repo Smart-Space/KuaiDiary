@@ -2,11 +2,18 @@
 编辑器化
 """
 from tkinter import Text, TclError
+from tkinter.filedialog import askopenfilename
 import tkinter.font as tkfont
+import os
+import re
+import shutil
+import datetime
+import random
 from webbrowser import open as open_url
 
 import data
 from tinui import ask_string, show_question
+from PIL import Image, ImageTk
 
 def editorabel(text:Text):
     if data.settings['theme'] == 'light':
@@ -84,6 +91,7 @@ class RichTextEditor:
         self.theme = theme
         self.format_colors = format_colors
         self.master = master
+        self.images:dict[str, ImageTk.PhotoImage] = {}
 
     def init_text_tags(self):
         """初始化文本标签"""
@@ -242,6 +250,70 @@ class RichTextEditor:
         self.textbox.tag_configure(tag_name, foreground=self.format_colors['linkfg'], underline=1)
         self.textbox.tag_bind(tag_name, '<Control-Button-1>', lambda _: self.open_url(url))
 
+    def _sanitize_image_name(self, file_path:str) -> str:
+        """处理图片名称"""
+        base_name = os.path.basename(file_path)
+        name, ext = os.path.splitext(base_name)
+        safe_name = re.sub(r'[^A-Za-z0-9_-]+', '_', name).strip('_')
+        if not safe_name:
+            safe_name = "image"
+        ext = ext.lower()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        rand_suffix = f"{random.randint(0, 999999):06d}"
+        return f"{safe_name}_{timestamp}_{rand_suffix}{ext}"
+
+    def _load_image_from_path(self, image_path:str, image_name:str):
+        """加载图片并缓存"""
+        img = Image.open(image_path)
+        width = self.textbox.winfo_width()
+        if width == 1:
+            width = self.textbox.winfo_reqwidth()
+        if img.width > width:
+            ratio = width / img.width
+            new_size = (width, int(img.height * ratio))
+            img = img.resize(new_size, Image.LANCZOS)
+        photo = ImageTk.PhotoImage(img, name=image_name)
+        self.images[image_name] = photo
+        return photo
+
+    def insert_image_by_name(self, image_name:str, index:str):
+        """按名称插入图片"""
+        image_path = os.path.join(data.img_dir, image_name)
+        if not os.path.exists(image_path):
+            return
+        if image_name in self.images:
+            photo = self.images[image_name]
+        else:
+            try:
+                photo = self._load_image_from_path(image_path, image_name)
+            except Exception:
+                return
+        self.textbox.image_create(index, image=photo)
+
+    def format_insert_image(self, event=None):
+        """插入图片"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        file_path = askopenfilename(
+            title='选择图片',
+            filetypes=[('Image Files', '*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp')]
+        )
+        if not file_path:
+            return
+        image_name = self._sanitize_image_name(file_path)
+        target_path = os.path.join(data.img_dir, image_name)
+        if os.path.abspath(file_path) != os.path.abspath(target_path):
+            try:
+                shutil.copy2(file_path, target_path)
+            except Exception:
+                return
+        try:
+            photo = self._load_image_from_path(target_path, image_name)
+        except Exception:
+            return
+        self.textbox.image_create('insert', image=photo)
+        self.textbox.edit_modified(True)
+
     def format_bold(self, event=None):
         """格式化粗体"""
         if self.textbox.cget('state') == 'disabled':
@@ -357,6 +429,6 @@ class RichTextEditor:
                     self.textbox.edit_modified(True)
                     return
             return
-        tag_name = self.TAG_LINKPREFIX + url
+        tag_name = f"{self.TAG_LINKPREFIX}{url}"
         self._link_tag_config(tag_name, url)
         self._toggle_simple_tag(tag_name)

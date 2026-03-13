@@ -7,12 +7,13 @@ from tkinter import Tk
 from tinui.theme.tinuilight import TinUILight
 from tinui.theme.tinuidark import TinUIDark
 
-version:str = "2.1.0" # 版本号
+version:str = "2.2.0" # 版本号
 
 root:Tk | None = None # 主窗口
 
 work_dir:str = "./datas" # 工作目录
 months:dict = {} # 存放月份数据 {年-月:[日期,...]}，需要有序字典，从python3.7开始默认字典有序
+img_dir:str = "./st_imgs" # 图片目录
 
 setting_dir:str = "./settings" # 设置目录
 settings:dict = {
@@ -21,6 +22,7 @@ settings:dict = {
     "window_action_pos": (0, 0, 800, 600), # 窗口位置
     "ask_url": False, # 打开URL前是否询问
     "storage_path": "./datas", # 数据存储路径
+    "img_path": "./st_imgs", # 图片存储路径
     "format_content": "\n{year}-{month}-{day}\n{content}\n", # 内容格式
     "format_sep": "==========", # 分隔线格式
 }
