@@ -13,6 +13,7 @@ text:Text|None = None
 nowday:Diary|None = None
 TAG_LINKPREFIX = 'fmt_link|'
 TAG_HIGHLIGHT = 'fmt_highlight|'
+TAG_FOREGROUND = 'fmt_foreground|'
 
 def reg_ui(t:Text):
     global text
@@ -36,6 +37,8 @@ def load_one_diary(date:str):
                 tag_map[val].append(index)
                 if val.startswith(TAG_HIGHLIGHT):
                     text.tag_configure(val, background=val[len(TAG_HIGHLIGHT):])
+                elif val.startswith(TAG_FOREGROUND):
+                    text.tag_configure(val, foreground=val[len(TAG_FOREGROUND):])
             elif attr == "tagoff":
                 if tag_map[val]:
                     start_index = tag_map[val].pop()
