@@ -4,34 +4,12 @@
 
 **KuaiDiary** is a lightweight, pure text diary application built with Python and Tkinter (via the `tinui` library). It stores diaries as plain text files in the `./datas` directory.
 
-## Build & Run Commands
-
-### Running the Application
-
-```bash
-# Install dependencies first
-pip install tinui
-
-# Run the application
-python main.py
-```
-
-### VS Code Debugging
-
-The project includes a `.vscode/launch.json` configuration for debugging:
-- Debug configuration: "Python 调试程序: 当前文件"
-- Entry point: `${workspaceFolder}/main.py`
-- Console: integratedTerminal
-
-### Linting & Type Checking
+## Linting & Type Checking
 
 No explicit linting or type checking configuration found. If adding, consider:
 - `pylint` or `ruff` for linting
 - `mypy` for type checking
 
-### Testing
-
-No test suite exists in this project.
 ## Code Style Guidelines
 
 ### General Conventions
@@ -164,4 +142,3 @@ with open(file_path, "w", encoding="utf-8") as f:
 1. Follow the existing file organization pattern
 2. Use existing imports structure
 3. Add Chinese comments/docstrings
-4. Test manually by running `python main.py`

@@ -1,7 +1,7 @@
 """
 编辑器化
 """
-from tkinter import Text, TclError
+from tkinter import Text, TclError, Tk
 from tkinter.filedialog import askopenfilename
 import tkinter.font as tkfont
 import os
@@ -58,6 +58,7 @@ class RichTextEditor:
     TAG_UNDERLINE = 'fmt_underline'
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
     TAG_HIGHLIGHT = 'fmt_highlight'
+    TAG_FOREGROUND = 'fmt_foreground'
     TAG_QUOTE = 'fmt_quote'
     TAG_ALIGN_LEFT = 'fmt_align_left'
     TAG_ALIGN_CENTER = 'fmt_align_center'
@@ -65,6 +66,7 @@ class RichTextEditor:
     ALIGN_TAGS = (TAG_ALIGN_LEFT, TAG_ALIGN_CENTER, TAG_ALIGN_RIGHT)
     TAG_LINKPREFIX = 'fmt_link|'
     TAG_HIGHLIGHTPREFIX = 'fmt_highlight|'
+    TAG_FOREGROUNDPREFIX = 'fmt_foreground|'
 
     @staticmethod
     def get_format_colors(theme):
@@ -72,12 +74,14 @@ class RichTextEditor:
         if theme == 'light':
             return {
                 'markbg': '#FFE600',
+                'markfg': '#d00000',
                 'quotefg': '#888888',
                 'linkfg': '#003e92'
             }
         else:
             return {
                 'markbg': '#D87700',
+                'markfg': '#ff8080',
                 'quotefg': '#BBBBBB',
                 'linkfg': '#99ebff'
             }
@@ -106,6 +110,7 @@ class RichTextEditor:
         self.textbox.tag_configure(self.TAG_UNDERLINE, underline=1)
         self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
         self.textbox.tag_configure(self.TAG_HIGHLIGHT, background=self.format_colors['markbg'])
+        self.textbox.tag_configure(self.TAG_FOREGROUND, foreground=self.format_colors['markfg'])
         self.textbox.tag_configure(self.TAG_QUOTE, lmargin1=20, lmargin2=20, foreground=self.format_colors['quotefg'])
         self.textbox.tag_configure(self.TAG_ALIGN_LEFT, justify='left')
         self.textbox.tag_configure(self.TAG_ALIGN_CENTER, justify='center')
@@ -329,6 +334,12 @@ class RichTextEditor:
         if self.textbox.cget('state') == 'disabled':
             return
         self._toggle_simple_tag(self.TAG_HIGHLIGHT)
+
+    def format_foreground(self, event=None):
+        """格式化前景色"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        self._toggle_simple_tag(self.TAG_FOREGROUND)
     
     def format_other_color(self, color):
         """格式化其他颜色"""
@@ -343,6 +354,20 @@ class RichTextEditor:
         tag_name = f'{self.TAG_HIGHLIGHT}|{color}'
         self.textbox.tag_configure(tag_name, background=color)
         self._toggle_simple_tag(tag_name)
+
+    def format_foreground_color(self, color):
+        """格式化其他前景色"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        start, end = self._selection_range()
+        if not start:
+            return
+        for tag in self.textbox.tag_names(start):
+            if tag == self.TAG_FOREGROUND or tag.startswith(self.TAG_FOREGROUNDPREFIX):
+                self.textbox.tag_remove(tag, start, end)
+        tag_name = f'{self.TAG_FOREGROUND}|{color}'
+        self.textbox.tag_configure(tag_name, foreground=color)
+        self._toggle_simple_tag(tag_name)
     
     def format_remove_color(self, event=None):
         """移除颜色格式"""
@@ -353,6 +378,17 @@ class RichTextEditor:
             return
         for tag in self.textbox.tag_names(start):
             if tag.startswith(self.TAG_HIGHLIGHTPREFIX):
+                self.textbox.tag_remove(tag, start, end)
+
+    def format_remove_foreground_color(self, event=None):
+        """移除前景色格式"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        start, end = self._selection_range()
+        if not start:
+            return
+        for tag in self.textbox.tag_names(start):
+            if tag == self.TAG_FOREGROUND or tag.startswith(self.TAG_FOREGROUNDPREFIX):
                 self.textbox.tag_remove(tag, start, end)
 
     def format_quote(self, event=None):

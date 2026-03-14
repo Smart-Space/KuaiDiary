@@ -82,6 +82,7 @@ class DatesView(BasicTinUI):
             ('', '\uE8DB', self.rich_editor.format_italic),
             ('', '\uE8DC', self.rich_editor.format_underline),
             ('', '\uEDE0', self.rich_editor.format_strikethrough),
+            ('', '\uE8D3', self.rich_editor.format_foreground),
             ('', '\uE7E6', self.rich_editor.format_highlight),
             ('', '\uE71B', self.rich_editor.format_link),
             '',
@@ -92,7 +93,7 @@ class DatesView(BasicTinUI):
             ('', '\uE8E2', self.rich_editor.format_align_right),
         )
         barbuttons, self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-2:]
-        flyoutui,_,self.flyout_hide,_ = self.ui.add_flyout(barbuttons[4][-1], width=120, height=120, bind='<Button-3>', anchor='s')
+        flyoutui,_,self.flyout_hide,_ = self.ui.add_flyout(barbuttons[5][-1], width=120, height=120, bind='<Button-3>', anchor='s')
         flyoutui.add_button((5,5), text='    ', bg='#FFE600', activebg='#FFE600', linew=0, command=lambda _: self.higlight_default_other_color('#FFE600'))
         flyoutui.add_button((45,5), text='    ', bg='#D87700', activebg='#D87700', linew=0, command=lambda _: self.higlight_default_other_color('#D87700'))
         flyoutui.add_button((85,5), text='    ', bg='#ff0000', activebg='#ff0000', linew=0, command=lambda _: self.higlight_default_other_color('#ff0000'))
@@ -102,6 +103,17 @@ class DatesView(BasicTinUI):
         flyoutui.add_button((5,85), text='    ', bg='#ee82ee', activebg='#ee82ee', linew=0, command=lambda _: self.higlight_default_other_color('#ee82ee'))
         flyoutui.add_button((45,85), text='🚫', linew=0, command=self.format_remove_color)
         flyoutui.add_button((83,85), text='🎨', linew=0, command=self.highlight_other_color)
+
+        fore_flyoutui,_,self.fore_flyout_hide,_ = self.ui.add_flyout(barbuttons[4][-1], width=120, height=120, bind='<Button-3>', anchor='s')
+        fore_flyoutui.add_button((5,5), text='    ', bg='#d00000', activebg='#d00000', linew=0, command=lambda _: self.foreground_default_color('#d00000'))
+        fore_flyoutui.add_button((45,5), text='    ', bg='#ff7f00', activebg='#ff7f00', linew=0, command=lambda _: self.foreground_default_color('#ff7f00'))
+        fore_flyoutui.add_button((85,5), text='    ', bg='#ffcc00', activebg='#ffcc00', linew=0, command=lambda _: self.foreground_default_color('#ffcc00'))
+        fore_flyoutui.add_button((5,45), text='    ', bg='#008000', activebg='#008000', linew=0, command=lambda _: self.foreground_default_color('#008000'))
+        fore_flyoutui.add_button((45,45), text='    ', bg='#0000ff', activebg='#0000ff', linew=0, command=lambda _: self.foreground_default_color('#0000ff'))
+        fore_flyoutui.add_button((85,45), text='    ', bg='#4b0082', activebg='#4b0082', linew=0, command=lambda _: self.foreground_default_color('#4b0082'))
+        fore_flyoutui.add_button((5,85), text='    ', bg='#ee82ee', activebg='#ee82ee', linew=0, command=lambda _: self.foreground_default_color('#ee82ee'))
+        fore_flyoutui.add_button((45,85), text='🚫', linew=0, command=self.format_remove_foreground_color)
+        fore_flyoutui.add_button((83,85), text='🎨', linew=0, command=self.foreground_other_color)
 
         self.bind("<Configure>", self.on_resize)
         self.textbox_kr_quote_id = None
@@ -213,3 +225,19 @@ class DatesView(BasicTinUI):
     def format_remove_color(self, _):
         self.flyout_hide(None)
         self.rich_editor.format_remove_color(None)
+
+    def foreground_default_color(self, color):
+        self.fore_flyout_hide(None)
+        self.rich_editor.format_foreground_color(color)
+        self.textbox.tag_raise('sel')
+
+    def foreground_other_color(self, _):
+        self.fore_flyout_hide(None)
+        color = askcolor(parent=self.master, title='选择文字颜色')[1]
+        if color:
+            self.rich_editor.format_foreground_color(color)
+        self.textbox.tag_raise('sel')
+
+    def format_remove_foreground_color(self, _):
+        self.fore_flyout_hide(None)
+        self.rich_editor.format_remove_foreground_color(None)
