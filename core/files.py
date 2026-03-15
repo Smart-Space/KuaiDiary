@@ -207,6 +207,16 @@ def _load_mdf2md(file_path:str) -> str:
                         tokens.append("<u>")
                     else:
                         tokens.append("</u>")
+                case "fmt_superscript":
+                    if attr == "tagon":
+                        tokens.append("<sup>")
+                    else:
+                        tokens.append("</sup>")
+                case "fmt_subscript":
+                    if attr == "tagon":
+                        tokens.append("<sub>")
+                    else:
+                        tokens.append("</sub>")
                 case "fmt_highlight":
                     tokens.append("==")
                 case "fmt_quote":

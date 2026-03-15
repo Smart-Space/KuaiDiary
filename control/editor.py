@@ -55,6 +55,8 @@ class RichTextEditor:
     """富文本编辑器"""
 
     FONT_TAGS = ('fmt_font_bold', 'fmt_font_italic', 'fmt_font_bold_italic')
+    TAG_SUPERSCRIPT = 'fmt_superscript'
+    TAG_SUBSCRIPT = 'fmt_subscript'
     TAG_UNDERLINE = 'fmt_underline'
     TAG_STRIKETHROUGH = 'fmt_strikethrough'
     TAG_HIGHLIGHT = 'fmt_highlight'
@@ -98,15 +100,23 @@ class RichTextEditor:
         """初始化文本标签"""
         base_font = tkfont.Font(font=self.textbox.cget('font'))
         font_conf = base_font.actual()
+        base_size = abs(font_conf.get('size', 12))
+        script_font_conf = font_conf.copy()
+        script_font_conf['size'] = self._resize_font_size(base_size, -3)
+        script_offset = self._script_offset(base_size)
         font_conf.update(weight='bold', slant='roman')
         self.bold_font = tkfont.Font(**font_conf)
         font_conf.update(weight='normal', slant='italic')
         self.italic_font = tkfont.Font(**font_conf)
         font_conf.update(weight='bold', slant='italic')
         self.bold_italic_font = tkfont.Font(**font_conf)
+        self.superscript_font = tkfont.Font(**script_font_conf)
+        self.subscript_font = tkfont.Font(**script_font_conf)
         self.textbox.tag_configure('fmt_font_bold', font=self.bold_font)
         self.textbox.tag_configure('fmt_font_italic', font=self.italic_font)
         self.textbox.tag_configure('fmt_font_bold_italic', font=self.bold_italic_font)
+        self.textbox.tag_configure(self.TAG_SUPERSCRIPT, font=self.superscript_font, offset=script_offset)
+        self.textbox.tag_configure(self.TAG_SUBSCRIPT, font=self.subscript_font, offset=-script_offset)
         self.textbox.tag_configure(self.TAG_UNDERLINE, underline=1)
         self.textbox.tag_configure(self.TAG_STRIKETHROUGH, overstrike=1)
         self.textbox.tag_configure(self.TAG_HIGHLIGHT, background=self.format_colors['markbg'])
@@ -188,6 +198,30 @@ class RichTextEditor:
         else:
             self.textbox.tag_add(tag_name, start, end)
         self.textbox.edit_modified(True)
+
+    def _toggle_exclusive_simple_tag(self, tag_name, other_tag):
+        """切换互斥标签"""
+        start, end = self._selection_range()
+        if not start or not end:
+            return
+        has_all = self._selection_all_match(start, end, lambda idx: tag_name in self.textbox.tag_names(idx))
+        if has_all:
+            self.textbox.tag_remove(tag_name, start, end)
+        else:
+            self.textbox.tag_remove(other_tag, start, end)
+            self.textbox.tag_add(tag_name, start, end)
+        self.textbox.edit_modified(True)
+
+    def _resize_font_size(self, size, delta):
+        """调整字体大小"""
+        if size > 0:
+            return max(1, size + delta)
+        return min(-1, size - delta)
+
+    def _script_offset(self, size):
+        """获取上下标偏移"""
+        offset = max(1, abs(size) // 3)
+        return offset
 
     def _line_range(self, index):
         """获取行范围"""
@@ -322,6 +356,18 @@ class RichTextEditor:
         if self.textbox.cget('state') == 'disabled':
             return
         self._toggle_simple_tag(self.TAG_UNDERLINE)
+
+    def format_superscript(self, event=None):
+        """格式化上标"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        self._toggle_exclusive_simple_tag(self.TAG_SUPERSCRIPT, self.TAG_SUBSCRIPT)
+
+    def format_subscript(self, event=None):
+        """格式化下标"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        self._toggle_exclusive_simple_tag(self.TAG_SUBSCRIPT, self.TAG_SUPERSCRIPT)
 
     def format_strikethrough(self, event=None):
         """格式化删除线"""

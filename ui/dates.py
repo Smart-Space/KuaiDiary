@@ -82,6 +82,8 @@ class DatesView(BasicTinUI):
             ('', '\uE8DB', self.rich_editor.format_italic),
             ('', '\uE8DC', self.rich_editor.format_underline),
             ('', '\uEDE0', self.rich_editor.format_strikethrough),
+            ('', '\uE8E8', self.rich_editor.format_superscript),
+            ('', '\uE8E7', self.rich_editor.format_subscript),
             ('', '\uE8D3', self.rich_editor.format_foreground),
             ('', '\uE7E6', self.rich_editor.format_highlight),
             ('', '\uE71B', self.rich_editor.format_link),
