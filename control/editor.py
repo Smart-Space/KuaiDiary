@@ -499,3 +499,17 @@ class RichTextEditor:
         tag_name = f"{self.TAG_LINKPREFIX}{url}"
         self._link_tag_config(tag_name, url)
         self._toggle_simple_tag(tag_name)
+
+    def format_clear_style(self, event=None):
+        """清空样式"""
+        if self.textbox.cget('state') == 'disabled':
+            return
+        start, end = self._selection_range()
+        if not start:
+            start = self.textbox.index('insert')
+            start = self.textbox.index(f'{start} linestart')
+            end = self.textbox.index(f'{start} lineend +1c')
+        for tag in self.textbox.tag_names():
+            if tag.startswith('fmt_'):
+                self.textbox.tag_remove(tag, start, end)
+        self.textbox.edit_modified(True)

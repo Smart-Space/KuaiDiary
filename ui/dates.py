@@ -88,14 +88,17 @@ class DatesView(BasicTinUI):
             ('', '\uE7E6', self.rich_editor.format_highlight),
             ('', '\uE71B', self.rich_editor.format_link),
             '',
-            ('', '\uE91B', self.rich_editor.format_insert_image),
             ('', '\uE9AA', self.rich_editor.format_quote),
             ('', '\uE8E4', self.rich_editor.format_align_left),
             ('', '\uE8E3', self.rich_editor.format_align_center),
             ('', '\uE8E2', self.rich_editor.format_align_right),
+            ('', '\uE733', self.format_clear_style),
+            '',
+            ('', '\uE91B', self.rich_editor.format_insert_image),
         )
         barbuttons, self.barbutton = self.ui.add_barbutton((0,-50), content=barbutton_text, anchor='w')[-2:]
-        flyoutui,_,self.flyout_hide,_ = self.ui.add_flyout(barbuttons[5][-1], width=120, height=120, bind='<Button-3>', anchor='s')
+
+        flyoutui,_,self.flyout_hide,_ = self.ui.add_flyout(barbuttons[7][-1], width=120, height=120, bind='<Button-3>', anchor='s')
         flyoutui.add_button((5,5), text='    ', bg='#FFE600', activebg='#FFE600', linew=0, command=lambda _: self.higlight_default_other_color('#FFE600'))
         flyoutui.add_button((45,5), text='    ', bg='#D87700', activebg='#D87700', linew=0, command=lambda _: self.higlight_default_other_color('#D87700'))
         flyoutui.add_button((85,5), text='    ', bg='#ff0000', activebg='#ff0000', linew=0, command=lambda _: self.higlight_default_other_color('#ff0000'))
@@ -106,7 +109,7 @@ class DatesView(BasicTinUI):
         flyoutui.add_button((45,85), text='🚫', linew=0, command=self.format_remove_color)
         flyoutui.add_button((83,85), text='🎨', linew=0, command=self.highlight_other_color)
 
-        fore_flyoutui,_,self.fore_flyout_hide,_ = self.ui.add_flyout(barbuttons[4][-1], width=120, height=120, bind='<Button-3>', anchor='s')
+        fore_flyoutui,_,self.fore_flyout_hide,_ = self.ui.add_flyout(barbuttons[6][-1], width=120, height=120, bind='<Button-3>', anchor='s')
         fore_flyoutui.add_button((5,5), text='    ', bg='#d00000', activebg='#d00000', linew=0, command=lambda _: self.foreground_default_color('#d00000'))
         fore_flyoutui.add_button((45,5), text='    ', bg='#ff7f00', activebg='#ff7f00', linew=0, command=lambda _: self.foreground_default_color('#ff7f00'))
         fore_flyoutui.add_button((85,5), text='    ', bg='#ffcc00', activebg='#ffcc00', linew=0, command=lambda _: self.foreground_default_color('#ffcc00'))
@@ -189,7 +192,7 @@ class DatesView(BasicTinUI):
 
     def insert_image_by_name(self, image_name, index):
         self.rich_editor.insert_image_by_name(image_name, index)
-
+    
     def format_bold(self, event):
         return self.rich_editor.format_bold(event)
 
@@ -198,6 +201,9 @@ class DatesView(BasicTinUI):
 
     def format_underline(self, event):
         return self.rich_editor.format_underline(event)
+
+    def format_clear_style(self, event):
+        return self.rich_editor.format_clear_style(event)
 
     def mdf_state_changed(self, tag):
         if self.format == tag:
