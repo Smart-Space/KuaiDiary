@@ -7,7 +7,7 @@ from tkinter import Tk
 from tinui.theme.tinuilight import TinUILight
 from tinui.theme.tinuidark import TinUIDark
 
-version:str = "2.2.0" # 版本号
+version:str = "2.3.0" # 版本号
 
 root:Tk | None = None # 主窗口
 
