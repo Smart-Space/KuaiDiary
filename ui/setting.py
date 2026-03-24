@@ -216,7 +216,7 @@ class SettingView(BasicTinUI):
         if font:
             data.settings['font_family'] = font
             save_settings()
-            self.itemconfig(self.font_demo, font=(data.settings['font_family'], data.settings['font_size']))
+            self.itemconfig(self.font_demo, font=(data.settings['font_family'], 14))
             data.today_editor.config_new_font_family(font, data.settings['font_size'])
             data.dates_editor.config_new_font_family(font, data.settings['font_size'])
 
