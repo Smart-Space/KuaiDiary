@@ -7,7 +7,8 @@ import datetime
 
 from tinui import BasicTinUI, VerticalPanel, HorizonPanel, ExpandPanel, show_warning, show_error, show_info
 from tinui.theme.tinuilight import TinUILight
-from tinuipicker.datepicker import TinUIDatePicker, pickerdark, pickerlight
+from tinuipicker.datepicker import TinUIDatePicker
+from tinuipicker import pickerlight, pickerdark
 
 import data
 from core.files import exist_diary, export_from_to

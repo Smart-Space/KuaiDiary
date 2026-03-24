@@ -65,6 +65,7 @@ def start_server():
 
 init_settings()
 mainwindow = MainWindow()
+data.root = mainwindow
 init_work_dir()
 image_db.init_db()
 threading.Thread(target=start_server, daemon=True).start()

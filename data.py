@@ -7,7 +7,9 @@ from tkinter import Tk
 from tinui.theme.tinuilight import TinUILight
 from tinui.theme.tinuidark import TinUIDark
 
-version:str = "2.3.0" # 版本号
+from control.editor import RichTextEditor
+
+version:str = "2.4.0" # 版本号
 
 root:Tk | None = None # 主窗口
 
@@ -25,7 +27,12 @@ settings:dict = {
     "img_path": "./st_imgs", # 图片存储路径
     "format_content": "\n{year}-{month}-{day}\n{content}\n", # 内容格式
     "format_sep": "==========", # 分隔线格式
+    "font_family": "Microsoft YaHei", # 字体
+    "font_size": 12, # 字体大小
 }
+
+today_editor:RichTextEditor | None = None # 今日编辑器实例
+dates_editor:RichTextEditor | None = None # 日期列表编辑器实例
 
 UITheme:TinUILight|TinUIDark|None = None
 

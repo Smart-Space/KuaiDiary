@@ -46,6 +46,7 @@ class TodayView(BasicTinUI):
         self.textbox:Text = textbox[0]
         format_colors = RichTextEditor.get_format_colors(self.theme)
         self.rich_editor = RichTextEditor(self.textbox, self.theme, format_colors, self.master)
+        data.today_editor = self.rich_editor
         self.rich_editor.init_text_tags()
         editorabel(self.textbox)
         reg_textbox(self.textbox)

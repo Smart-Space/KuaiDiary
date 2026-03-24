@@ -25,6 +25,15 @@
 			<paragraph text='窗口启动'></paragraph>
 			<segmentbutton content='("无要求","最大化","居中","上次位置")' command='self.funcs["change_window_action"]'>win_segmentbutton</segmentbutton>
 		</line>
+		<line anchor='w' lineanchor='nw' pady='20' padx='15'>
+			<paragraph text='编辑字体'></paragraph>
+			<paragraph text='abc甲乙丙'>font_demo</paragraph>
+			<button text='选择字体' command='self.funcs["select_font"]'></button>
+		</line>
+		<line anchor='w' pady='10'>
+			<paragraph text='字体大小          '>font_size</paragraph>
+			<scalebar data="(10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)" command='self.funcs["change_font_size"]'>font_scale</scalebar>
+		</line>
 		<line>
 			<checkbutton text='打开URL前询问' command='self.funcs["toggle_ask_url"]'>ask_url_checkbutton</checkbutton>
 		</line>

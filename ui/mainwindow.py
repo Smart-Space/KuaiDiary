@@ -50,10 +50,10 @@ class MainWindow(Tk):
         hp1 = HorizonPanel(self.ui_, spacing=2)
         self.root.set_child(hp1)
         nav_content = (
-            ('\uE929','今日'),
-            ('\uE787','往昔'),
-            ('\uEDE1','导出'),
-            ('\uE713','设置')
+            ('./assets/today.png','今日'),
+            ('./assets/dates.png','往昔'),
+            ('./assets/export.png','导出'),
+            ('./assets/setting.png','设置')
         )
         self.nav = self.ui.add_navigation((0,0), maxwidth=100, content=nav_content, command=self.change_view)
         hp1.add_child(self.nav[-1])

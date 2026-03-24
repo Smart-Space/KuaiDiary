@@ -4,8 +4,9 @@
 import webbrowser
 from tkinter import Text, Entry
 from tkinter.filedialog import askdirectory
+from tkinter.font import families, Font
 
-from tinui import BasicTinUI, TinUIXml, show_info
+from tinui import BasicTinUI, TinUIXml, show_info, ask_choice
 from tinui.theme.tinuilight import TinUILight
 
 import data
@@ -56,6 +57,8 @@ class SettingView(BasicTinUI):
             'change_theme': self.change_theme,
             'change_window_action': self.change_window_action,
             'toggle_ask_url': None,
+            'select_font': self.select_font,
+            'change_font_size': None,
         })
         with open("./assets/settingui.xml", "r", encoding="utf-8") as f:
             xml = f.read().replace("%VERSION%", data.version)
@@ -69,6 +72,16 @@ class SettingView(BasicTinUI):
             self.theme_radiobox.select(1)
         self.win_segmentbutton = self.uixml.tags['win_segmentbutton'][-2]
         self.win_segmentbutton.select(data.settings['window_action'])
+
+        self.font_demo = self.uixml.tags['font_demo']
+        self.itemconfig(self.font_demo, font=(data.settings['font_family'], 12))
+        self.font_size = self.uixml.tags['font_size']
+        self.itemconfig(self.font_size, text=f"字体大小 {data.settings['font_size']}pt")
+        index = data.settings['font_size'] - 10
+        font_scale = self.uixml.tags['font_scale'][-2]
+        font_scale.select(index)
+        self.uixml.funcs['change_font_size'] = self.change_font_size
+
         ask_url_checkbutton = self.uixml.tags['ask_url_checkbutton'][-2]
         if data.settings['ask_url']:
             ask_url_checkbutton.on()
@@ -190,6 +203,23 @@ class SettingView(BasicTinUI):
             data.settings['window_action'] = now
             save_settings()
     
+    def change_font_size(self, size):
+        data.settings['font_size'] = size
+        save_settings()
+        self.itemconfig(self.font_size, text=f"字体大小 {size}pt")
+        data.today_editor.config_new_font_family(data.settings['font_family'], data.settings['font_size'])
+        data.dates_editor.config_new_font_family(data.settings['font_family'], data.settings['font_size'])
+
+    def select_font(self, _):
+        all_fonts = sorted(list(families()))
+        font = ask_choice(self.master, "选择字体", "请选择字体", all_fonts, theme=self.theme)
+        if font:
+            data.settings['font_family'] = font
+            save_settings()
+            self.itemconfig(self.font_demo, font=(data.settings['font_family'], data.settings['font_size']))
+            data.today_editor.config_new_font_family(font, data.settings['font_size'])
+            data.dates_editor.config_new_font_family(font, data.settings['font_size'])
+
     def toggle_ask_url(self, tag):
         data.settings['ask_url'] = tag
         save_settings()

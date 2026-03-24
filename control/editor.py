@@ -1,7 +1,7 @@
 """
 编辑器化
 """
-from tkinter import Text, TclError, Tk
+from tkinter import Text, TclError
 from tkinter.filedialog import askopenfilename
 import tkinter.font as tkfont
 import os
@@ -91,6 +91,7 @@ class RichTextEditor:
     def __init__(self, textbox, theme, format_colors, master=None):
         """初始化富文本编辑器"""
         self.textbox = textbox
+        self.textbox.config(font=(data.settings['font_family'], data.settings['font_size']))
         self.theme = theme
         self.format_colors = format_colors
         self.master = master
@@ -102,7 +103,7 @@ class RichTextEditor:
         font_conf = base_font.actual()
         base_size = abs(font_conf.get('size', 12))
         script_font_conf = font_conf.copy()
-        script_font_conf['size'] = self._resize_font_size(base_size, -3)
+        script_font_conf['size'] = self._resize_font_size(base_size, -base_size // 4)
         script_offset = self._script_offset(base_size)
         font_conf.update(weight='bold', slant='roman')
         self.bold_font = tkfont.Font(**font_conf)
@@ -126,6 +127,24 @@ class RichTextEditor:
         self.textbox.tag_configure(self.TAG_ALIGN_CENTER, justify='center')
         self.textbox.tag_configure(self.TAG_ALIGN_RIGHT, justify='right')
         self.textbox.tag_raise('sel')
+    
+    def config_new_font_family(self, font_family, font_size):
+        """配置新字体"""
+        for tag in self.FONT_TAGS:
+            current_font = tkfont.Font(font=self.textbox.tag_cget(tag, 'font'))
+            font_conf = current_font.actual()
+            font_conf['family'] = font_family
+            font_conf['size'] = font_size
+            new_font = tkfont.Font(**font_conf)
+            self.textbox.tag_configure(tag, font=new_font)
+        for tag in (self.TAG_SUPERSCRIPT, self.TAG_SUBSCRIPT):
+            current_font = tkfont.Font(font=self.textbox.tag_cget(tag, 'font'))
+            font_conf = current_font.actual()
+            font_conf['family'] = font_family
+            font_conf['size'] = self._resize_font_size(font_size, -font_size // 4)
+            new_font = tkfont.Font(**font_conf)
+            self.textbox.tag_configure(tag, font=new_font)
+        self.textbox.config(font=(font_family, font_size))
 
     def _selection_range(self):
         """获取选区范围"""
