@@ -2,7 +2,7 @@
 <line pady='30'>
 	<line y='50' padx='20' anchor='w'>
 		<image imgfile='./assets/logo-small.png'></image>
-		<line lineanchor='w'>
+		<line lineanchor='w' pady='20'>
 			<line>
 				<title text='快日记 | KuaiDiary'></title>
 				<paragraph text='%VERSION%'></paragraph>
@@ -63,7 +63,7 @@
 		</line>
 		<line pady='10'>
 			<paragraph text='导出内容'></paragraph>
-			<textbox width="225">fm_textbox</textbox>
+			<textbox width="225" height="200">fm_textbox</textbox>
 			<paragraph text=''>fm_string</paragraph>
 		</line>
 		<line anchor='w' lineanchor='nw'>

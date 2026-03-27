@@ -19,8 +19,10 @@ class MainWindow(Tk):
         super().__init__()
         self.title("KuaiDiary")
         self.iconbitmap('./logo.ico')
-        self.geometry("800x600")
-        self.minsize(800, 600)
+        width = int(800 * data.factory)
+        height = int(600 * data.factory)
+        self.geometry(f"{width}x{height}")
+        self.minsize(width, height)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.now_view:BasicTinUI = None
         
@@ -30,7 +32,7 @@ class MainWindow(Tk):
         elif window_action == 2:
             sc_width = self.winfo_screenwidth()
             sc_height = self.winfo_screenheight()
-            w, h = 800, 600
+            w, h = int(800 * data.factory), int(600 * data.factory)
             x = (sc_width - w) // 2
             y = (sc_height - h) // 2
             self.geometry(f"{w}x{h}+{x}+{y}")
@@ -42,6 +44,7 @@ class MainWindow(Tk):
     def init_ui(self):
         self.theme = data.UITheme
         self.ui_ = BasicTinUI(self)
+        self.ui_.set_scale(data.factory)
         self.ui_.pack(fill="both", expand=True)
         self.ui = self.theme(self.ui_)
 
@@ -50,12 +53,12 @@ class MainWindow(Tk):
         hp1 = HorizonPanel(self.ui_, spacing=2)
         self.root.set_child(hp1)
         nav_content = (
-            ('./assets/today.png','今日'),
-            ('./assets/dates.png','往昔'),
-            ('./assets/export.png','导出'),
-            ('./assets/setting.png','设置')
+            ('\uE929','今日'),
+            ('\uE787','往昔'),
+            ('\uEDE1','导出'),
+            ('\uE713','设置')
         )
-        self.nav = self.ui.add_navigation((0,0), maxwidth=100, content=nav_content, command=self.change_view)
+        self.nav = self.ui.add_navigation((0,0), maxwidth=100*data.factory, content=nav_content, command=self.change_view)
         hp1.add_child(self.nav[-1])
 
         ep = ExpandPanel(self.ui_)

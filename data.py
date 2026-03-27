@@ -1,6 +1,13 @@
 """
 KuaiDiary数据
 """
+import sys
+if sys.platform == "win32":
+    import ctypes
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    factory = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+else:
+    factory = 1
 import socket
 from tkinter import Tk
 
@@ -9,7 +16,7 @@ from tinui.theme.tinuidark import TinUIDark
 
 from control.editor import RichTextEditor
 
-version:str = "2.4.0" # 版本号
+version:str = "2.5.0" # 版本号
 
 root:Tk | None = None # 主窗口
 

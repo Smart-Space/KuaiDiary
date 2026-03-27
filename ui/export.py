@@ -18,6 +18,7 @@ class ExportView(BasicTinUI):
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
+        self.set_scale(data.factory)
         self.start = None
         self.end = None
         self.temp_start = datetime.date.today()

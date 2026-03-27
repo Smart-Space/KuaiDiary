@@ -4,7 +4,7 @@
 import webbrowser
 from tkinter import Text, Entry
 from tkinter.filedialog import askdirectory
-from tkinter.font import families, Font
+from tkinter.font import families
 
 from tinui import BasicTinUI, TinUIXml, show_info, ask_choice
 from tinui.theme.tinuilight import TinUILight
@@ -19,6 +19,7 @@ class SettingView(BasicTinUI):
 
     def __init__(self, master=None, theme=TinUILight):
         super().__init__(master)
+        self.set_scale(data.factory)
         self.ui = theme(self)
         self.uixml = TinUIXml(self.ui)
         self.init_ui()
