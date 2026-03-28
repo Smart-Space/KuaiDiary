@@ -19,7 +19,8 @@ def editorabel(text:Text):
         ibg = '#E0E0E0'
     font = tkfont.Font(font=text.cget("font"))
     font_size = font.measure("    ")
-    text.config(tabs=font_size, undo=True, maxundo=100, autoseparators=False, wrap="char", spacing1=4, spacing3=4,
+    space_len = int(4*data.factory)
+    text.config(tabs=font_size, undo=True, maxundo=100, autoseparators=False, wrap="char", spacing1=space_len, spacing3=space_len,
                 insertbackground=ibg, insertwidth=1)
     text.bind("<Control-z>", __editor_undo)
     text.bind("<Control-y>", __editor_redo)
