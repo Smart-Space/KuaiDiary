@@ -216,7 +216,7 @@ class DatesView(BasicTinUI):
             self.textbox_kr_quote_id = self.textbox.bind('<KeyRelease>', self.rich_editor._sync_quote_for_current_line, True)
         else:
             self.vp.pop_child(1)
-            self._BasicTinUI__auto_anchor(self.barbutton, (0,-50))
+            self._BasicTinUI__auto_anchor(self.barbutton, (0,-50), anchor='sw')
             self.textbox.unbind('<KeyRelease>', self.textbox_kr_quote_id)
         self.event_generate("<Configure>", x=0, y=0, width=self.winfo_width(), height=self.winfo_height())
 

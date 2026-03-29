@@ -124,7 +124,7 @@ class TodayView(BasicTinUI):
                 self.first_mdf_change = False
                 return
             self.vp.pop_child(1)
-            self._BasicTinUI__auto_anchor(self.barbutton, (0,-50))
+            self._BasicTinUI__auto_anchor(self.barbutton, (0,-50), anchor='sw')
             self.textbox.unbind('<KeyRelease>', self.textbox_kr_quote_id)
         self.event_generate("<Configure>", x=0, y=0, width=self.winfo_width(), height=self.winfo_height())
     
