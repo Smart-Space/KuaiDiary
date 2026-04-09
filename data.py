@@ -11,12 +11,14 @@ else:
 import socket
 from tkinter import Tk
 
+from tinui.TinUIDialog import Dialog
+Dialog.set_scale(factory)
 from tinui.theme.tinuilight import TinUILight
 from tinui.theme.tinuidark import TinUIDark
 
 from control.editor import RichTextEditor
 
-version:str = "2.5.3" # 版本号
+version:str = "2.5.4" # 版本号
 
 root:Tk | None = None # 主窗口
 
