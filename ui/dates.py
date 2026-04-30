@@ -18,6 +18,7 @@ class DatesView(BasicTinUI):
         super().__init__(master)
         self.set_scale(data.factory)
         self.diary:str = None
+        self.select_month = None
         self.ui = theme(self)
         self.theme = data.settings['theme']
         self.format = False
@@ -61,8 +62,8 @@ class DatesView(BasicTinUI):
         self.mdf_check = mdf_checks[-1]
         self.mdf_check_funcs = mdf_checks[-2]
         hp2.add_child(self.mdf_check)
-        self.tog_button_text, _, _, self.tog_button_func, tog_button = self.ui.add_togglebutton((0,0), text='\uE72E', font='{Segoe Fluent Icons} 14', command=self.switch_editable, anchor='w')
-        hp2.add_child(tog_button)
+        self.tog_button_text, _, _, self.tog_button_func, self.tog_button = self.ui.add_togglebutton((0,0), text='\uE72E', font='{Segoe Fluent Icons} 14', command=self.switch_editable, anchor='w')
+        hp2.add_child(self.tog_button)
         hp2.add_child(self.ui.add_button2((0,0), text='导出该月', command=self.save_selected_month, anchor='w')[-1])
         self.clip_button = self.ui.add_toolbutton((0,0), icon='\uE8C8', text='', font=('{Segoe Fluent Icons}', 14), bg=all_bg, line=all_bg, command=self.save_this_month_clipboard, anchor='w')[-1]
         hp2.add_child(self.clip_button)
@@ -134,6 +135,7 @@ class DatesView(BasicTinUI):
         if len(d) == 2:
             monthi, datei = d
             month = self.tv.itemcget(self.tvitems[monthi][0], 'text')
+            self.select_month = month
             date = self.tv.itemcget(self.tvitems[datei][0], 'text')
             diary = f"{month}-{date}"
             if diary != self.diary:
@@ -147,6 +149,21 @@ class DatesView(BasicTinUI):
                 else:
                     self.mdf_check_funcs.off()
                 self.tog_button_func.off()
+        else:
+            if self.diary:
+                save_one_diary(self.format)
+            monthi = d[0]
+            month = self.tv.itemcget(self.tvitems[monthi][0], 'text')
+            self.itemconfig(self.title, text=month)
+            self.diary = None
+            self.select_month = month
+            self.textbox.config(state='normal')
+            self.textbox.delete('1.0', 'end')
+            self.textbox.config(state='disabled')
+            self.textbox.edit_reset()
+            self.textbox.edit_modified(False)
+            self.mdf_check_funcs.off()
+            self.tog_button_func.off()
     
     def save_log(self):
         if self.diary:
@@ -154,21 +171,19 @@ class DatesView(BasicTinUI):
     
     def save_selected_month(self, _):
         self.save_log()
-        if self.diary:
-            month = '-'.join(self.diary.split('-')[:2])
-            content = export_month(month)
+        if self.select_month:
+            content = export_month(self.select_month)
             if not content:
                 show_error(self.master, '无法导出', '该月没有日志。', theme=self.theme)
                 return
-            export_month_to_file(month, content)
+            export_month_to_file(self.select_month, content)
         else:
-            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。", theme=self.theme)
+            show_error(self.master, "无法导出", "请先选择日期或月份。", theme=self.theme)
     
     def save_this_month_clipboard(self, _):
         self.save_log()
-        if self.diary:
-            month = '-'.join(self.diary.split('-')[:2])
-            content = export_month(month)
+        if self.select_month:
+            content = export_month(self.select_month)
             if not content:
                 show_error(self.master, '无法导出', '该月没有日志。', theme=self.theme)
                 return
@@ -177,7 +192,7 @@ class DatesView(BasicTinUI):
             self.clipboard_append(content)
             self.after(1000, lambda: self.itemconfig(self.clip_button+'icon', text='\uE8C8'))
         else:
-            show_error(self.master, "无法导出", "请先选择日期，详见左上方年-月-日标题。", theme=self.theme)
+            show_error(self.master, "无法导出", "请先选择日期或月份。", theme=self.theme)
     
     def switch_editable(self, state):
         if not self.diary:
@@ -208,6 +223,8 @@ class DatesView(BasicTinUI):
         return self.rich_editor.format_clear_style(event)
 
     def mdf_state_changed(self, tag):
+        if not self.diary:
+            return
         if self.format == tag:
             return
         self.format = tag
