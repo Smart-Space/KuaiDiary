@@ -184,14 +184,35 @@ def _load_mdf2md(file_path:str) -> str:
     tokens = ['\n']
     quote_tag = False
     link_tag = False
-    for attr, val, index in contents:
-        if attr == "text":
-            if quote_tag and index.endswith('.0'):
+    line_start = True
+
+    def _append_text(text:str):
+        nonlocal line_start
+        if not text:
+            return
+        if not quote_tag:
+            tokens.append(text)
+            line_start = text.endswith("\n")
+            return
+        parts = text.split("\n")
+        for i, part in enumerate(parts):
+            if i > 0:
+                tokens.append("\n")
+                line_start = True
+            if line_start:
                 tokens.append("> ")
-            tokens.append(val)
+            if part:
+                tokens.append(part)
+            line_start = False
+    for attr, val, _ in contents:
+        if attr == "text":
+            _append_text(val)
         elif attr == "image":
             image_path = os.path.abspath(os.path.join(data.img_dir, val)).replace('\\', '/')
+            if quote_tag and line_start:
+                tokens.append("> ")
             tokens.append(f"![{val}]({image_path})")
+            line_start = False
         elif attr == "tagon" or attr == "tagoff":
             match val:
                 case "fmt_font_bold":
@@ -252,7 +273,7 @@ def _load_mdf2md(file_path:str) -> str:
                 case _ if val.startswith(TAG_HIGHLIGHTPREFIX):
                     tokens.append("==")
     tokens.append('\n')
-    return "".join(tokens).replace("\n", "\n\n")
+    return "".join(tokens)
 
 def export_month(month:str) -> str:
     """
