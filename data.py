@@ -18,7 +18,7 @@ from tinui.theme.tinuidark import TinUIDark
 
 from control.editor import RichTextEditor
 
-version:str = "2.5.4" # 版本号
+version:str = "2.6.0" # 版本号
 
 root:Tk | None = None # 主窗口
 

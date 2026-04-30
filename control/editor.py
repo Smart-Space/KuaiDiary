@@ -20,8 +20,7 @@ def editorabel(text:Text):
     font = tkfont.Font(font=text.cget("font"))
     font_size = font.measure("    ")
     space_len = int(4*data.factory)
-    text.config(tabs=font_size, undo=True, maxundo=100, autoseparators=False, wrap="char", spacing1=space_len, spacing3=space_len,
-                insertbackground=ibg, insertwidth=1)
+    text.config(tabs=font_size, undo=True, maxundo=100, autoseparators=False, wrap="char", spacing1=space_len, spacing3=space_len, insertbackground=ibg)
     text.bind("<Control-z>", __editor_undo)
     text.bind("<Control-y>", __editor_redo)
     text.bind("<Key>", __editor_input)
