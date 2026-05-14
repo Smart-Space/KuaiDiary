@@ -7,6 +7,7 @@ import pickle
 from tkinter.filedialog import asksaveasfilename
 
 import data
+from control.search import search_engine
 from core.diary import Diary
 
 DIARY_FORMAT_SUFFIX = ".mdf"
@@ -65,12 +66,14 @@ def _save_diary_file(diary:Diary):
     obsolete_path = formatted_path if not diary.format else plain_path
     if os.path.exists(obsolete_path) and obsolete_path != target_path:
         os.remove(obsolete_path)
+        search_engine.invalidate_file(diary) # 标记索引过期
     if isinstance(diary.contents, str):
         with open(target_path, "w", encoding="utf-8") as f:
             f.write(diary.contents)
     else:
         with open(target_path, "wb") as f:
             pickle.dump(diary.contents, f)
+    search_engine.modify_file(diary) # 更新索引
 
 def init_work_dir():
     """

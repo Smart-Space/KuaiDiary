@@ -9,9 +9,11 @@ from ui.today import TodayView
 from ui.dates import DatesView
 from ui.export import ExportView
 from ui.setting import SettingView
+from ui.search import SearchView
 import data
 from core.settings import save_settings
 from core.image_db import image_db
+from control.search import search_engine
 
 class MainWindow(Tk):
 
@@ -56,6 +58,7 @@ class MainWindow(Tk):
             ('\uE929','今日'),
             ('\uE787','往昔'),
             ('\uEDE1','导出'),
+            ('\uE721','搜索'),
             ('\uE713','设置')
         )
         self.nav = self.ui.add_navigation((0,0), maxwidth=100*data.factory, content=nav_content, command=self.change_view)
@@ -71,8 +74,11 @@ class MainWindow(Tk):
         self.now_view = self.today_view = TodayView(self.child[0], self.theme)
         self.dates_view = DatesView(self.child[0], self.theme)
         self.export_view = ExportView(self.child[0], self.theme)
+        self.search_view = SearchView(self.child[0], self.theme)
         self.setting_view = SettingView(self.child[0], self.theme)
         self.now_view.pack(fill="both", expand=True)
+        
+        search_engine.ensure_index() # 启动时构建搜索索引
 
         self.after(100, self.today_view.load_diary)
     
@@ -94,6 +100,9 @@ class MainWindow(Tk):
         elif tag == '导出':
             self.now_view.pack_forget()
             self.now_view = self.export_view
+        elif tag == '搜索':
+            self.now_view.pack_forget()
+            self.now_view = self.search_view
         elif tag == '设置':
             self.now_view.pack_forget()
             self.now_view = self.setting_view
@@ -114,5 +123,7 @@ class MainWindow(Tk):
             save_settings()
 
         image_db.close_db()
+
+        search_engine._save_index() # 保存搜索索引
         
         self.destroy()
