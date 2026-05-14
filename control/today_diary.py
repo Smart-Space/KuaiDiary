@@ -53,7 +53,7 @@ def load_context():
     text.tag_raise('sel')
     return today
 
-def get_format_context() -> str:
+def get_format_context() -> list[tuple[str, str, str]]:
     context = text.dump("1.0", "end-1c", image=True, tag=True, text=True) # 去掉文本框末尾换行
     return context
 
