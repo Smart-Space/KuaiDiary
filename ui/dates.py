@@ -3,8 +3,10 @@
 """
 from tkinter import Text
 from tkinter.colorchooser import askcolor
+from typing import List
 from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel, show_error
 from tinui.theme.tinuilight import TinUILight
+from tinuitreeview import TinUITreeView, TinUITreeItem, tvdark, tvlight
 
 import data
 from control.dates_diary import reg_ui, load_one_diary, save_one_diary
@@ -45,12 +47,10 @@ class DatesView(BasicTinUI):
 
         ep = ExpandPanel(self)
         hp.add_child(ep, 120)
-        treev = self.ui.add_treeview((0,0), content=self.data, command=self.on_select)
-        ep.set_child(treev[-1])
-        self.tvitems = treev[0]
-        self.tv:BasicTinUI = treev[2]
-        tvfuncs = treev[-2]
-        tvfuncs.close_all()
+        # treev = self.ui.add_treeview((0,0), content=self.data, command=self.on_select)
+        self.treev = treev = TinUITreeView(self, (0,0), content=self.data, command=self.on_select, **(tvdark if data.settings['theme'] == 'dark' else tvlight))
+        ep.set_child(treev.uid)
+        treev.close_all()
 
         self.vp = vp = VerticalPanel(self, spacing=5, bg=all_bg, bd=17, padding=(4,4,4,4))
         hp.add_child(vp, weight=1)
@@ -130,13 +130,15 @@ class DatesView(BasicTinUI):
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width-1, event.height-1)
     
-    def on_select(self, d):
+    def select_to(self, month:str, date:str):
+        self.treev.select_node([month, date])
+    
+    def on_select(self, d:List[TinUITreeItem]):
         self.tree_val = d
         if len(d) == 2:
-            monthi, datei = d
-            month = self.tv.itemcget(self.tvitems[monthi][0], 'text')
+            month = d[0].text
             self.select_month = month
-            date = self.tv.itemcget(self.tvitems[datei][0], 'text')
+            date = d[1].text
             diary = f"{month}-{date}"
             if diary != self.diary:
                 if self.diary:
@@ -152,8 +154,7 @@ class DatesView(BasicTinUI):
         else:
             if self.diary:
                 save_one_diary(self.format)
-            monthi = d[0]
-            month = self.tv.itemcget(self.tvitems[monthi][0], 'text')
+            month = d[0].text
             self.itemconfig(self.title, text=month)
             self.diary = None
             self.select_month = month

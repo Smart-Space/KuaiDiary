@@ -18,7 +18,7 @@ from tinui.theme.tinuidark import TinUIDark
 
 from control.editor import RichTextEditor
 
-version:str = "2.6.0" # 版本号
+version:str = "2.7.0" # 版本号
 
 root:Tk | None = None # 主窗口
 
@@ -47,3 +47,5 @@ UITheme:TinUILight|TinUIDark|None = None
 
 SERVER_SOCKET:socket.socket|None = None # 单实例通信服务器
 SERVER_PORT:int = 21567 # 通信端口
+
+req_open_dairy:tuple[str, str] | None = None # 请求打开的日记日期

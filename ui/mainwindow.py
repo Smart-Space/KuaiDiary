@@ -1,6 +1,7 @@
 """
 KuaiDiary主窗口
 """
+from datetime import date
 from tkinter import Tk
 
 from tinui import BasicTinUI, ExpandPanel, HorizonPanel
@@ -42,6 +43,8 @@ class MainWindow(Tk):
             x, y, w, h = data.settings['window_action_pos']
             self.geometry(f"{w}x{h}+{x}+{y}")
         self.update()
+
+        self.bind("<<OpenDiary>>", self.open_diary)
     
     def init_ui(self):
         self.theme = data.UITheme
@@ -81,6 +84,14 @@ class MainWindow(Tk):
         search_engine.ensure_index() # 启动时构建搜索索引
 
         self.after(100, self.today_view.load_diary)
+    
+    def open_diary(self, _):
+        diary_date = data.req_open_dairy
+        if date.today().strftime("%Y-%m-%d") == f"{diary_date[0]}-{diary_date[1]}":
+            self.nav[-2].navigate(0) # 今日
+        else:
+            self.nav[-2].navigate(1) # 往昔
+            self.dates_view.select_to(diary_date[0], diary_date[1])
     
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width, event.height)

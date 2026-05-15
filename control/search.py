@@ -2,7 +2,6 @@
 日记全局搜索引擎
 """
 import pickle
-import re
 import threading
 import time
 from pathlib import Path
@@ -17,14 +16,11 @@ from core.diary import Diary
 class MatchInfo:
     """单条匹配的上下文片段"""
     snippet: str            # 前后文片段（换行替换为 ↵）
-    highlight_start: int    # 关键词在 snippet 中的起始偏移
-    highlight_end: int      # 关键词在 snippet 中的结束偏移
 
 
 @dataclass
 class FileResult:
     """单个文件的搜索结果"""
-    rel_path: str           # "2026-03/01.mdf"
     month: str              # "2026-03"
     day: str                # "01"
     matches: List[MatchInfo]
@@ -205,8 +201,8 @@ class DiarySearchEngine:
 
         self.ensure_index()
 
-        flags = re.IGNORECASE if ignore_case else 0
-        pattern = re.compile(re.escape(keyword), flags)
+        query = keyword.casefold() if ignore_case else keyword
+        query_len = len(keyword)
 
         # 取快照，避免长时间持锁
         with self._lock:
@@ -216,8 +212,18 @@ class DiarySearchEngine:
 
         for rel_path, entry in snapshot.items():
             text = entry['text']
-            hits = list(pattern.finditer(text))
-            if not hits:
+            search_text = text.casefold() if ignore_case else text
+
+            hit_positions: List[int] = []
+            start = 0
+            while True:
+                pos = search_text.find(query, start)
+                if pos < 0:
+                    break
+                hit_positions.append(pos)
+                start = pos + query_len
+
+            if not hit_positions:
                 continue
 
             # 解析路径
@@ -225,28 +231,24 @@ class DiarySearchEngine:
             month = p.parent.name
             day = p.stem
 
-            shown = hits[:max_per_file] if max_per_file > 0 else hits
             matches: List[MatchInfo] = []
 
-            for m in shown:
-                cs = max(0, m.start() - context_chars)
-                ce = min(len(text), m.end() + context_chars)
+            shown = hit_positions[:max_per_file] if max_per_file > 0 else hit_positions
+
+            for pos in shown:
+                cs = max(0, pos - context_chars)
+                ce = min(len(text), pos + query_len + context_chars)
 
                 # 换行符可视化，保持单行便于展示
                 snippet = text[cs:ce].replace('\n', '↵')
 
-                matches.append(MatchInfo(
-                    snippet=snippet,
-                    highlight_start=m.start() - cs,
-                    highlight_end=m.end() - cs,
-                ))
+                matches.append(MatchInfo(snippet=snippet))
 
             results.append(FileResult(
-                rel_path=rel_path,
                 month=month,
                 day=day,
                 matches=matches,
-                total_hits=len(hits),
+                total_hits=len(hit_positions),
             ))
 
         # 按月份+日期排序
