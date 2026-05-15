@@ -17,6 +17,8 @@
 
 - 基础富文本格式支持
 
+- 全局搜索
+
   > 超链接需要通过`Control`和鼠标左键单击打开。
 
 ## 使用说明
@@ -42,6 +44,10 @@
 ### 批量导出
 
 选择合适的起止日期，进行批量导出。
+
+### 全局搜索
+
+输入关键字并在所有日记中进行搜索。
 
 ### 快捷键
 
@@ -70,10 +76,6 @@
    ```
 3. 运行`main.py`即可
 
-理论上，代码库中所使用的库和实现方式均为跨平台的。欢迎提供测试样例、协助以及问题报告。
-
-> Mac和Linux上，需要安装TinUI使用的Segoe Fluent Icons字体。
-
 ## 截图
 
 <img src="./screenshot/today.png" width="500" />
@@ -81,5 +83,7 @@
 <img src="./screenshot/dates.png" width="500" />
 
 <img src="./screenshot/export.png"  width="500" />
+
+<img src="./screenshot/search.png"  width="500" />
 
 <img src="./screenshot/setting.png" width="500" />

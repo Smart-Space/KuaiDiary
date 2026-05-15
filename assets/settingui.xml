@@ -71,5 +71,16 @@
 			<entry width="200">fm_entry</entry>
 		</line>
 	</line>
+	<line>
+		<line pady='10'>
+			<title text='搜索设置' size='2'></title>
+		</line>
+		<line anchor='w' lineanchor='nw' pady='10'>
+			<checkbutton text='区分大小写' command='self.funcs["toggle_case_sensitive"]'>case_sensitive_checkbutton</checkbutton>
+		</line>
+		<line anchor='w' lineanchor='nw' pady='10'>
+			<checkbutton text='逆时间顺序排序' command='self.funcs["toggle_reverse_sort"]'>reverse_sort_checkbutton</checkbutton>
+		</line>
+	</line>
 </line>
 </tinui>

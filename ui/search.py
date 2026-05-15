@@ -54,7 +54,7 @@ class SearchView(BasicTinUI):
         self.card_rescroll()
     
     def on_search(self, text):
-        results:List[FileResult] = search_engine.search(text)
+        results:List[FileResult] = search_engine.search(text, ignore_case=not data.settings['case_sensitive'])
         self.card.clear_children()
         for r in results:
             for i, m in enumerate(r.matches):

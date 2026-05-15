@@ -38,6 +38,8 @@ settings:dict = {
     "format_sep": "==========", # 分隔线格式
     "font_family": "Microsoft YaHei", # 字体
     "font_size": 12, # 字体大小
+    "case_sensitive": False, # 搜索是否区分大小写
+    "reverse_sort": False # 是否逆时间顺序排序
 }
 
 today_editor:RichTextEditor | None = None # 今日编辑器实例

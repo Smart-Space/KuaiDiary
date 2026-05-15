@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Optional
 
+import data
 from core.diary import Diary
 
 
@@ -252,7 +253,7 @@ class DiarySearchEngine:
             ))
 
         # 按月份+日期排序
-        results.sort(key=lambda r: (r.month, r.day), reverse=True)
+        results.sort(key=lambda r: (r.month, r.day), reverse=not data.settings['reverse_sort'])
         return results
 
 search_engine = DiarySearchEngine()

@@ -60,6 +60,8 @@ class SettingView(BasicTinUI):
             'toggle_ask_url': None,
             'select_font': self.select_font,
             'change_font_size': None,
+            'toggle_case_sensitive': None,
+            'toggle_reverse_sort': None
         })
         with open("./assets/settingui.xml", "r", encoding="utf-8") as f:
             xml = f.read().replace("%VERSION%", data.version)
@@ -111,6 +113,16 @@ class SettingView(BasicTinUI):
         self.fm_text.insert(1.0, data.settings.get("format_content", ""))
         self.fm_entry.insert(0, data.settings.get("format_sep", ""))
         self.preview_export_format()
+
+        # search
+        case_sensitive_checkbutton = self.uixml.tags['case_sensitive_checkbutton'][-2]
+        if data.settings['case_sensitive']:
+            case_sensitive_checkbutton.on()
+        self.reverse_sort_checkbutton = self.uixml.tags['reverse_sort_checkbutton'][-2]
+        if data.settings['reverse_sort']:
+            self.reverse_sort_checkbutton.on()
+        self.uixml.funcs['toggle_case_sensitive'] = self.toggle_case_sensitive
+        self.uixml.funcs['toggle_reverse_sort'] = self.toggle_reverse_sort
     
     def open_github(self, _):
         webbrowser.open("https://github.com/Smart-Space/KuaiDiary")
@@ -223,4 +235,12 @@ class SettingView(BasicTinUI):
 
     def toggle_ask_url(self, tag):
         data.settings['ask_url'] = tag
+        save_settings()
+    
+    def toggle_case_sensitive(self, tag):
+        data.settings['case_sensitive'] = tag
+        save_settings()
+    
+    def toggle_reverse_sort(self, tag):
+        data.settings['reverse_sort'] = tag
         save_settings()
