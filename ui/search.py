@@ -53,7 +53,9 @@ class SearchView(BasicTinUI):
         self.card.update_layout(event.x, event.y, event.width-1, event.height-1)
         self.card_rescroll()
     
+    now_search:str = ""
     def on_search(self, text):
+        self.now_search = text
         results:List[FileResult] = search_engine.search(text, ignore_case=not data.settings['case_sensitive'])
         self.card.clear_children()
         for r in results:
@@ -62,12 +64,13 @@ class SearchView(BasicTinUI):
                 hp = HorizonPanel(self.card_ui, spacing=5, bg=self.root.bg)
                 vp.add_child(hp, 20)
                 hp.add_child(self.card_ui_theme.add_label((0,0), text=f"{r.month}-{r.day} ({i+1}/{r.total_hits})", anchor='center')[-1])
-                hp.add_child(self.card_ui_theme.add_button2((0,0), text='', icon='\uE72D', command=lambda _, path=(r.month,r.day):self.open_dairy(path), anchor='w')[-1], 20)
+                hp.add_child(self.card_ui_theme.add_button2((0,0), text='', icon='\uE72D', command=lambda _, path=[r.month,r.day,i]:self.open_dairy(path), anchor='w')[-1], 20)
                 vp.add_child(self.card_ui_theme.add_paragraph((0,0), text=f"...{m.snippet}...", width=self.scale_value(280)), 80)
                 self.card.add_child(vp)
         self.card_ui.event_generate("<Configure>", x=0, y=0, width=self.card_ui.winfo_width(), height=self.card_ui.winfo_height())
 
-    def open_dairy(self, path):
+    def open_dairy(self, path:list):
+        path.append(self.now_search)
         data.req_open_dairy = path
         data.root.event_generate("<<OpenDiary>>")
 

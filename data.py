@@ -50,4 +50,4 @@ UITheme:TinUILight|TinUIDark|None = None
 SERVER_SOCKET:socket.socket|None = None # 单实例通信服务器
 SERVER_PORT:int = 21567 # 通信端口
 
-req_open_dairy:tuple[str, str] | None = None # 请求打开的日记日期
+req_open_dairy:list[str, str, int, str] | None = None # 请求打开的日记日期

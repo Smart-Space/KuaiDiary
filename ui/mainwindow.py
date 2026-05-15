@@ -94,7 +94,7 @@ class MainWindow(Tk):
             self.nav[-2].navigate(0) # 今日
         else:
             self.nav[-2].navigate(1) # 往昔
-            self.dates_view.select_to(diary_date[0], diary_date[1])
+            self.dates_view.select_to(*diary_date) # 年，月，搜索关键词
     
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width, event.height)

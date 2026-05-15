@@ -130,8 +130,19 @@ class DatesView(BasicTinUI):
     def on_resize(self, event):
         self.root.update_layout(event.x, event.y, event.width-1, event.height-1)
     
-    def select_to(self, month:str, date:str):
+    def select_to(self, month:str, date:str, count:int, search:str):
         self.treev.select_node([month, date])
+        startindex = '1.0'
+        for _ in range(count+1):
+            pos = self.textbox.search(search, startindex, 'end')
+            if not pos:
+                break
+            startindex = f"{pos}+1c"
+        self.textbox.focus_set()
+        self.textbox.tag_remove('sel', '1.0', 'end')
+        self.textbox.mark_set('insert', pos)
+        self.textbox.tag_add('sel', pos, f"{pos}+{len(search)}c")
+        self.textbox.see('insert')
     
     def on_select(self, d:List[TinUITreeItem]):
         self.tree_val = d
