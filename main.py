@@ -12,6 +12,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 import data
 from ui.mainwindow import MainWindow
+from control.search import search_engine
 from core.files import init_work_dir
 from core.settings import init_settings
 from core.image_db import image_db
@@ -67,6 +68,7 @@ init_settings()
 mainwindow = MainWindow()
 data.root = mainwindow
 init_work_dir()
+threading.Thread(target=search_engine.ensure_index).start() # 启动时构建搜索索引
 image_db.init_db()
 threading.Thread(target=start_server, daemon=True).start()
 mainwindow.init_ui()

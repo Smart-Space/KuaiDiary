@@ -28,6 +28,12 @@ class MainWindow(Tk):
         self.minsize(width, height)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.now_view:BasicTinUI = None
+
+        self.theme = data.UITheme
+        self.ui_ = BasicTinUI(self)
+        self.ui_.set_scale(data.factory)
+        self.ui_.pack(fill="both", expand=True)
+        self.ui = self.theme(self.ui_)
         
         window_action = data.settings.get('window_action', 0)
         if window_action == 1:
@@ -44,15 +50,12 @@ class MainWindow(Tk):
             self.geometry(f"{w}x{h}+{x}+{y}")
         self.update()
 
+        self.ui_.add_image((self.ui_.winfo_width()//2, self.ui_.winfo_height()//2), imgfile='./assets/logo-small.png', anchor='center')
+        self.ui_.update_idletasks()
+
         self.bind("<<OpenDiary>>", self.open_diary)
     
     def init_ui(self):
-        self.theme = data.UITheme
-        self.ui_ = BasicTinUI(self)
-        self.ui_.set_scale(data.factory)
-        self.ui_.pack(fill="both", expand=True)
-        self.ui = self.theme(self.ui_)
-
         self.root = ExpandPanel(self.ui_, padding=(5,5,5,5))
         
         hp1 = HorizonPanel(self.ui_, spacing=2)
@@ -80,10 +83,10 @@ class MainWindow(Tk):
         self.search_view = SearchView(self.child[0], self.theme)
         self.setting_view = SettingView(self.child[0], self.theme)
         self.now_view.pack(fill="both", expand=True)
-        
-        search_engine.ensure_index() # 启动时构建搜索索引
 
         self.after(100, self.today_view.load_diary)
+
+        self.ui_.event_generate("<Configure>", x=0, y=0, width=self.ui_.winfo_width(), height=self.ui_.winfo_height())
     
     def open_diary(self, _):
         diary_date = data.req_open_dairy
