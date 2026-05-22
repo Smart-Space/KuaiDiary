@@ -185,4 +185,7 @@ datas/
 st_imgs/
 settings/
 .opencode/
-search_index.db
+.search_index.db
+.search_index.db-wal
+.search_index.db-shm
+libsimple-windows-x64/

@@ -114,10 +114,13 @@ def delete_today_diary():
     if not os.path.exists(month_dir):
         return
     file_name = datetime.date.today().strftime("%d")
-    file_path, _ = _resolve_diary_file(month_dir, file_name)
+    file_path, formatted = _resolve_diary_file(month_dir, file_name)
     if not file_path:
         return
     os.remove(file_path)
+    diary = Diary(datetime.date.today())
+    diary.format = formatted
+    search_engine.invalidate_file(diary)
     # 判断当月文件夹是否为空
     if len(os.listdir(month_dir)) == 0:
         os.rmdir(month_dir)
