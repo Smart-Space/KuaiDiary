@@ -2,7 +2,6 @@
 日记全局搜索引擎
 """
 import pickle
-import re
 import sqlite3
 import threading
 import time
@@ -30,68 +29,29 @@ class FileResult:
     total_hits: int         # 总匹配数
 
 
-class _SimpleTokenizer:
-    """使用 simple.dll 进行分词"""
-
-    def __init__(self):
-        self._local = threading.local()
-        self._dll_path = (
-            Path(__file__).resolve().parent.parent / "libsimple-windows-x64" / "simple.dll"
-        )
-
-    def _create_conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(":memory:")
-        conn.execute("PRAGMA temp_store=MEMORY")
-        conn.enable_load_extension(True)
-        try:
-            try:
-                conn.load_extension(str(self._dll_path), "sqlite3_simple_init")
-            except TypeError:
-                conn.load_extension(str(self._dll_path))
-        finally:
-            conn.enable_load_extension(False)
-        conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS t USING fts5(content, tokenize='simple')")
-        conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS t_vocab USING fts5vocab(t, 'row')")
-        return conn
-
-    def _get_conn(self) -> sqlite3.Connection:
-        conn = getattr(self._local, "conn", None)
-        if conn is None:
-            conn = self._create_conn()
-            self._local.conn = conn
-        return conn
-
-    def tokenize(self, text: str) -> List[str]:
-        if not text:
-            return []
-        try:
-            conn = self._get_conn()
-            conn.execute("DELETE FROM t")
-            conn.execute("INSERT INTO t(content) VALUES (?)", (text,))
-            rows = conn.execute("SELECT term FROM t_vocab").fetchall()
-            return [term for (term,) in rows if term]
-        except Exception:
-            return _fallback_tokenize(text)
-
-
-def _fallback_tokenize(text: str) -> List[str]:
-    parts = re.findall(r"[0-9A-Za-z]+|[\u4e00-\u9fff]", text)
-    return parts
-
-
-_simple_tokenizer = _SimpleTokenizer()
-
 class DiarySearchEngine:
     """
     全局文本搜索引擎
     流程:
       1. 首次调用时扫描 datas/ 下所有日记文件
-      2. 并发提取纯文本，构建 SQLite 索引（文本 + 分词映射）
-      3. 搜索时先用分词索引筛候选，再做文本匹配
+      2. 并发提取纯文本，构建 SQLite 索引（文件表 + FTS5 全文表）
+      3. 搜索时先用 simple 的 MATCH 语法筛候选，再做文本匹配
       4. 增量更新：仅重新解析 mtime 变化的文件
     """
 
     INDEX_FILE = '.search_index.db'
+
+    def _load_simple_extension(self, conn: sqlite3.Connection):
+        """加载 simple 扩展，让 FTS5 可以使用 tokenize='simple'。"""
+        dll_path = Path(__file__).resolve().parent.parent / "libsimple-windows-x64" / "simple.dll"
+        conn.enable_load_extension(True)
+        try:
+            try:
+                conn.load_extension(str(dll_path), "sqlite3_simple_init")
+            except TypeError:
+                conn.load_extension(str(dll_path))
+        finally:
+            conn.enable_load_extension(False)
 
     def __init__(self, data_dir:str='datas', max_workers:int=4):
         self.data_dir = Path(data_dir)
@@ -133,17 +93,18 @@ class DiarySearchEngine:
             return self._conn
         db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(db_path, check_same_thread=False)
+        self._load_simple_extension(self._conn)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA synchronous=NORMAL")
         self._conn.execute("PRAGMA temp_store=MEMORY")
+        self._conn.execute("PRAGMA wal_autocheckpoint=100") # 每100条提交一次 WAL
+        self._conn.execute("PRAGMA journal_size_limit=1048576") # 1MB
         self._conn.execute(
             "CREATE TABLE IF NOT EXISTS files (rel_path TEXT PRIMARY KEY, mtime REAL NOT NULL, text TEXT NOT NULL)"
         )
         self._conn.execute(
-            "CREATE TABLE IF NOT EXISTS tokens (token TEXT NOT NULL, rel_path TEXT NOT NULL, PRIMARY KEY (token, rel_path))"
+            "CREATE VIRTUAL TABLE IF NOT EXISTS files_fts USING fts5(rel_path UNINDEXED, mtime UNINDEXED, text, tokenize='simple', content='files', content_rowid='rowid')"
         )
-        self._conn.execute("CREATE INDEX IF NOT EXISTS idx_tokens_token ON tokens(token)")
-        self._conn.execute("CREATE INDEX IF NOT EXISTS idx_tokens_rel_path ON tokens(rel_path)")
         self._conn.commit()
         self._db_dir = str(self.data_dir)
         return self._conn
@@ -161,37 +122,57 @@ class DiarySearchEngine:
                 return
             self._conn.commit()
 
-    def _tokenize_text(self, text: str) -> List[str]:
-        """使用 simple 对文本分词"""
-        normalized = text.casefold()
-        tokens = [t.strip() for t in _simple_tokenizer.tokenize(normalized) if t.strip()]
-        return tokens
-
-    def _tokenize_query(self, keyword: str) -> List[str]:
-        keyword_norm = keyword.casefold()
-        tokens = set(self._tokenize_text(keyword_norm))
-        if keyword_norm and keyword_norm not in tokens:
-            tokens.add(keyword_norm)
-        return sorted(tokens)
+    def _build_match_query(self, keyword: str) -> str:
+        """把用户输入包装成适合 FTS5 simple 的短语查询。"""
+        normalized = keyword.strip().replace('"', '""').replace("\x00", "")
+        return f'"{normalized}"'
 
     def _update_file_index(self, rel_path: str, mtime: float, text: str):
         conn = self._ensure_conn()
-        conn.execute("DELETE FROM tokens WHERE rel_path = ?", (rel_path,))
-        conn.execute(
-            "INSERT OR REPLACE INTO files (rel_path, mtime, text) VALUES (?, ?, ?)",
-            (rel_path, mtime, text),
-        )
-        tokens = sorted(set(self._tokenize_text(text)))
-        if tokens:
-            conn.executemany(
-                "INSERT OR IGNORE INTO tokens (token, rel_path) VALUES (?, ?)",
-                [(token, rel_path) for token in tokens],
+    
+        # 1. 查找旧记录的 rowid
+        rowid_row = conn.execute(
+            "SELECT rowid FROM files WHERE rel_path = ?", (rel_path,)
+        ).fetchone()
+        
+        if rowid_row is not None:
+            rowid = rowid_row[0]
+            # 2. 先删 FTS5 中的旧索引
+            conn.execute("DELETE FROM files_fts WHERE rowid = ?", (rowid,))
+            # 3. 更新 files 主表
+            conn.execute(
+                "UPDATE files SET mtime=?, text=? WHERE rowid=?",
+                (mtime, text, rowid),
+            )
+            # 4. 再插 FTS5 新索引
+            conn.execute(
+                "INSERT INTO files_fts(rowid, rel_path, mtime, text) VALUES (?, ?, ?, ?)",
+                (rowid, rel_path, mtime, text),
+            )
+        else:
+            # 5. 新文件：插入 files 主表
+            conn.execute(
+                "INSERT INTO files (rel_path, mtime, text) VALUES (?, ?, ?)",
+                (rel_path, mtime, text),
+            )
+            # 6. 获取新 rowid 并插入 FTS5
+            rowid = conn.execute(
+                "SELECT rowid FROM files WHERE rel_path = ?", (rel_path,)
+            ).fetchone()[0]
+            conn.execute(
+                "INSERT INTO files_fts(rowid, rel_path, mtime, text) VALUES (?, ?, ?, ?)",
+                (rowid, rel_path, mtime, text),
             )
 
     def _remove_file_index(self, rel_path: str):
         conn = self._ensure_conn()
-        conn.execute("DELETE FROM tokens WHERE rel_path = ?", (rel_path,))
-        conn.execute("DELETE FROM files WHERE rel_path = ?", (rel_path,))
+        rowid_row = conn.execute(
+            "SELECT rowid FROM files WHERE rel_path = ?", (rel_path,)
+        ).fetchone()
+        if rowid_row is not None:
+            # 先删 FTS5 索引，再删主表
+            conn.execute("DELETE FROM files_fts WHERE rowid = ?", (rowid_row[0],))
+            conn.execute("DELETE FROM files WHERE rowid = ?", (rowid_row[0],))
 
     def _iter_all_files(self) -> Iterable[tuple[str, float]]:
         ignore_prefixes = {
@@ -223,8 +204,9 @@ class DiarySearchEngine:
             conn = self._ensure_conn()
             rows = conn.execute("SELECT rel_path, mtime FROM files").fetchall()
             existing = {rel: mtime for rel, mtime in rows}
+            fts_count = conn.execute("SELECT COUNT(*) FROM files_fts").fetchone()[0]
 
-            if force:
+            if force or fts_count != len(existing):
                 stale = set(current.keys())
             else:
                 stale = {
@@ -304,18 +286,16 @@ class DiarySearchEngine:
                     texts[rel_path] = text
         return texts
 
-    def _find_candidates(self, tokens: List[str]) -> List[str]:
+    def _find_candidates(self, match_query: str) -> List[str]:
         conn = self._ensure_conn()
         with self._lock:
-            if not tokens:
+            if not match_query:
                 rows = conn.execute("SELECT rel_path FROM files").fetchall()
                 return [rel_path for (rel_path,) in rows]
-            placeholders = ",".join(["?"] * len(tokens))
-            sql = (
-                f"SELECT rel_path FROM tokens WHERE token IN ({placeholders}) "
-                "GROUP BY rel_path HAVING COUNT(DISTINCT token) = ?"
-            )
-            rows = conn.execute(sql, (*tokens, len(tokens))).fetchall()
+            rows = conn.execute(
+                "SELECT rel_path FROM files_fts WHERE files_fts MATCH ?",
+                (match_query,),
+            ).fetchall()
             return [rel_path for (rel_path,) in rows]
 
     def search(
@@ -342,11 +322,12 @@ class DiarySearchEngine:
 
         self.ensure_index()
 
-        query = keyword.casefold() if ignore_case else keyword
-        query_len = len(keyword)
+        query_text = keyword.strip()
+        query = query_text.casefold() if ignore_case else query_text
+        query_len = len(query_text)
 
-        tokens = self._tokenize_query(keyword)
-        candidates = self._find_candidates(tokens)
+        match_query = self._build_match_query(query)
+        candidates = self._find_candidates(match_query)
         texts = self._fetch_texts(candidates)
 
         results: List[FileResult] = []
