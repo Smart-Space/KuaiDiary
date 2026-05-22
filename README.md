@@ -69,12 +69,14 @@
 
 1. 克隆或下载本项目源码
 
-2. 安装tinui
+2. 将`simple`（用于sqlite）发行版放置在根目录下，目录名为`libsimple-windows-x64`（`/control/search.py`硬编码，其他平台自行更改）。
+
+3. 安装tinui
 
    ```cmd
    pip install tinui
    ```
-3. 运行`main.py`即可
+4. 运行`main.py`即可
 
 ## 截图
 

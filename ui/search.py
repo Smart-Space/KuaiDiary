@@ -21,8 +21,15 @@ class SearchView(BasicTinUI):
         self.init_ui()
     
     def init_ui(self):
-        all_bg = '#F9F9F9' if data.settings['theme'] == 'light' else '#272727'
-        self.root = ExpandPanel(self, padding=(4,4,4,4), bg=all_bg, bd=17)
+        if data.settings['theme'] == 'light':
+            self.all_bg = '#F9F9F9'
+            self.all_line = '#e5e5e5'
+            self.card_bg = '#fdfdfd'
+        else:
+            self.all_bg = '#272727'
+            self.all_line = '#1d1d1d'
+            self.card_bg = '#343434'
+        self.root = ExpandPanel(self, padding=(4,4,4,4), bg=self.all_bg, bd=17, linew=1, line=self.all_line)
 
         vp = VerticalPanel(self, spacing=5)
         self.root.set_child(vp)
@@ -36,12 +43,13 @@ class SearchView(BasicTinUI):
         hp.add_child(self.ui.add_button2((0,0), text='', icon='\uE895', command=self.force_refresh, anchor='w')[-1])
         hp.add_child(self.ui.add_back((0,0)), weight=1)
 
-        ep = ExpandPanel(self, bg=self['background'], padding=(10,10,10,10))
+        ep = ExpandPanel(self, bg=self.all_bg, padding=(10,10,10,10))
         self.card_ui, self.card_rescroll, _, card_ui = self.ui.add_ui((0,0), scrollbar=True, region="man", content=False)
         ep.set_child(card_ui)
         vp.add_child(ep, weight=1)
         self.card_ui_theme = self.Theme(self.card_ui)
-        self.card = CardPanel(self.card_ui, bg=self['background'], card_width=300, v_spacing=10, h_spacing=10)
+        self.card_ui.configure(bg=self.all_bg)
+        self.card = CardPanel(self.card_ui, bg=self.all_bg, card_width=300, v_spacing=10, h_spacing=10)
 
         self.card_ui.bind("<Configure>", self.on_card_resize)
         self.bind("<Configure>", self.on_resize)
@@ -58,8 +66,8 @@ class SearchView(BasicTinUI):
         self.card.clear_children()
         for r in results:
             for i, m in enumerate(r.matches):
-                vp = VerticalPanel(self.card_ui, spacing=5, bg=self.root.bg, padding=(5,5,5,5))
-                hp = HorizonPanel(self.card_ui, spacing=5, bg=self.root.bg)
+                vp = VerticalPanel(self.card_ui, spacing=5, bg=self.card_bg, padding=(5,5,5,5), linew=1, line=self.all_line)
+                hp = HorizonPanel(self.card_ui, spacing=5)
                 vp.add_child(hp, 20)
                 hp.add_child(self.card_ui_theme.add_label((0,0), text=f"{r.month}-{r.day} ({i+1}/{r.total_hits})", anchor='center')[-1])
                 hp.add_child(self.card_ui_theme.add_button2((0,0), text='', icon='\uE72D', command=lambda _, path=(r.month,r.day,i,text):self.open_dairy(path), anchor='w')[-1], 20)

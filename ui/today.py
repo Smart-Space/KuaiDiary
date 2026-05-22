@@ -23,8 +23,13 @@ class TodayView(BasicTinUI):
         self.init_ui()
     
     def init_ui(self):
-        all_bg = '#F9F9F9' if data.settings['theme'] == 'light' else '#272727'
-        self.root = ExpandPanel(self, padding=(4,4,4,4), bg=all_bg, bd=17)
+        if data.settings['theme'] == 'light':
+            all_bg = '#F9F9F9'
+            all_line = '#e5e5e5'
+        else:
+            all_bg = '#272727'
+            all_line = '#1d1d1d'
+        self.root = ExpandPanel(self, padding=(4,4,4,4), bg=all_bg, bd=17, linew=1, line=all_line)
 
         self.vp = vp = VerticalPanel(self, spacing=5)
         self.root.set_child(vp)

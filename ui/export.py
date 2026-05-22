@@ -31,11 +31,16 @@ class ExportView(BasicTinUI):
         self.theme = data.settings['theme']
     
     def init_ui(self):
-        all_bg = '#F9F9F9' if data.settings['theme'] == 'light' else '#272727'
+        if data.settings['theme'] == 'light':
+            all_bg = '#F9F9F9'
+            all_line = '#e5e5e5'
+        else:
+            all_bg = '#272727'
+            all_line = '#1d1d1d'
         picker_colors = pickerlight if data.settings['theme'] == 'light' else pickerdark
         self.root = ExpandPanel(self)
 
-        vp = VerticalPanel(self, spacing=5, bg=all_bg, bd=17, padding=(4,4,4,4))
+        vp = VerticalPanel(self, spacing=5, bg=all_bg, bd=17, padding=(4,4,4,4), linew=1, line=all_line)
         self.root.set_child(vp)
 
         hp1 = HorizonPanel(self, spacing=5)

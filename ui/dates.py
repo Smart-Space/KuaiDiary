@@ -39,7 +39,12 @@ class DatesView(BasicTinUI):
                     self.data.append(k)
     
     def init_ui(self):
-        all_bg = '#F9F9F9' if data.settings['theme'] == 'light' else '#272727'
+        if data.settings['theme'] == 'light':
+            all_bg = '#F9F9F9'
+            all_line = '#e5e5e5'
+        else:
+            all_bg = '#272727'
+            all_line = '#1d1d1d'
         self.root = ExpandPanel(self)
 
         hp = HorizonPanel(self, spacing=5)
@@ -47,12 +52,11 @@ class DatesView(BasicTinUI):
 
         ep = ExpandPanel(self)
         hp.add_child(ep, 120)
-        # treev = self.ui.add_treeview((0,0), content=self.data, command=self.on_select)
         self.treev = treev = TinUITreeView(self, (0,0), content=self.data, command=self.on_select, **(tvdark if data.settings['theme'] == 'dark' else tvlight))
         ep.set_child(treev.uid)
         treev.close_all()
 
-        self.vp = vp = VerticalPanel(self, spacing=5, bg=all_bg, bd=17, padding=(4,4,4,4))
+        self.vp = vp = VerticalPanel(self, spacing=5, bg=all_bg, bd=17, padding=(4,4,4,4), linew=1, line=all_line)
         hp.add_child(vp, weight=1)
         hp2 = HorizonPanel(self, spacing=5, padding=(0,2,0,0))
         vp.add_child(hp2, 30)
