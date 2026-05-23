@@ -67,10 +67,7 @@ class SearchView(BasicTinUI):
         for r in results:
             for i, m in enumerate(r.matches):
                 vp = VerticalPanel(self.card_ui, spacing=5, bg=self.card_bg, padding=(5,5,5,5), linew=1, line=self.all_line)
-                hp = HorizonPanel(self.card_ui, spacing=5)
-                vp.add_child(hp, 20)
-                hp.add_child(self.card_ui_theme.add_label((0,0), text=f"{r.month}-{r.day} ({i+1}/{r.total_hits})", anchor='center')[-1])
-                hp.add_child(self.card_ui_theme.add_button2((0,0), text='', icon='\uE72D', command=lambda _, path=(r.month,r.day,i,text):self.open_dairy(path), anchor='w')[-1], 20)
+                vp.add_child(self.card_ui_theme.add_accentbutton((0,0), text=f"{r.month}-{r.day} ({i+1}/{r.total_hits})", command=lambda _, path=(r.month,r.day,i,text):self.open_dairy(path), anchor='w')[-1], 25)
                 vp.add_child(self.card_ui_theme.add_paragraph((0,0), text=f"...{m.snippet}...", width=self.scale_value(280)), 80)
                 self.card.add_child(vp)
         self.card_ui.event_generate("<Configure>", x=0, y=0, width=self.card_ui.winfo_width(), height=self.card_ui.winfo_height())
