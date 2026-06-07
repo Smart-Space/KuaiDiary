@@ -34,12 +34,13 @@ settings:dict = {
     "ask_url": False, # 打开URL前是否询问
     "storage_path": "./datas", # 数据存储路径
     "img_path": "./st_imgs", # 图片存储路径
-    "format_content": "\n{year}-{month}-{day}\n{content}\n", # 内容格式
+    "format_content": "\n{year}-{month}-{day} {weekday}\n{content}\n", # 内容格式
     "format_sep": "==========", # 分隔线格式
     "font_family": "Microsoft YaHei", # 字体
     "font_size": 12, # 字体大小
     "case_sensitive": False, # 搜索是否区分大小写
-    "reverse_sort": False # 是否逆时间顺序排序
+    "reverse_sort": False, # 是否逆时间顺序排序
+    "show_weekday": False # 是否显示星期
 }
 
 today_editor:RichTextEditor | None = None # 今日编辑器实例

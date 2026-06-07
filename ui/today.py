@@ -36,7 +36,11 @@ class TodayView(BasicTinUI):
 
         hp = HorizonPanel(self, spacing=5, padding=(0,2,0,0))
         vp.add_child(hp, 30)
-        hp.add_child(self.ui.add_title((0,0), text=datetime.date.today().strftime('%Y-%m-%d'), anchor='w'), weight=1)
+        date = datetime.date.today().strftime('%Y-%m-%d')
+        if data.settings['show_weekday']:
+            weekday = datetime.date.today().strftime('%A')
+            date += f' {weekday}'
+        hp.add_child(self.ui.add_title((0,0), text=date, anchor='w'), weight=1)
         mdf_checks = self.ui.add_checkbutton((0,0), text='富格式', command=self.mdf_state_changed, anchor='w')
         self.mdf_check = mdf_checks[-1]
         self.mdf_check_funcs = mdf_checks[-2]

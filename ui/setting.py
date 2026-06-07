@@ -61,7 +61,8 @@ class SettingView(BasicTinUI):
             'select_font': self.select_font,
             'change_font_size': None,
             'toggle_case_sensitive': None,
-            'toggle_reverse_sort': None
+            'toggle_reverse_sort': None,
+            'toggle_show_weekday': None
         })
         with open("./assets/settingui.xml", "r", encoding="utf-8") as f:
             xml = f.read().replace("%VERSION%", data.version)
@@ -89,6 +90,11 @@ class SettingView(BasicTinUI):
         if data.settings['ask_url']:
             ask_url_checkbutton.on()
         self.uixml.funcs['toggle_ask_url'] = self.toggle_ask_url
+        
+        show_weekday_checkbutton = self.uixml.tags['show_weekday_checkbutton'][-2]
+        if data.settings['show_weekday']:
+            show_weekday_checkbutton.on()
+        self.uixml.funcs['toggle_show_weekday'] = self.toggle_show_weekday
         
         # storage
         self.st_entry:Entry = self.uixml.tags['st_entry'][0]
@@ -132,7 +138,7 @@ class SettingView(BasicTinUI):
     
     def about_export_setting(self, _):
         show_info(self.master, "导出设置说明", "导出内容为每篇日记导出的文本格式，有如下特殊转义文本：\n" \
-        "· {year} 年 {month} 月 {day} 日\n" \
+        "· {year} 年 {month} 月 {day} 日 {weekday} 星期\n" \
         "· {-month}\t无补零月\n" \
         "· {-day}\t\t无补零日\n" \
         "· {content}\t日记内容\n\n" \
@@ -149,7 +155,7 @@ class SettingView(BasicTinUI):
         # 预览导出格式
         content = self.fm_text.get(1.0, "end-1c")
         sep = self.fm_entry.get()
-        _content = content.replace("{year}", "2026").replace("{month}", "01").replace("{day}", "01").replace("{-month}", "1").replace("{-day}", "1").replace("{content}", "日记内容")
+        _content = content.replace("{year}", "2026").replace("{month}", "01").replace("{day}", "01").replace("{-month}", "1").replace("{-day}", "1").replace("{weekday}", "Monday").replace("{content}", "日记内容")
         self.itemconfig(self.fm_string, text=f"格式预览：\n{sep}{_content}{sep}")
         return content, sep
 
@@ -235,6 +241,10 @@ class SettingView(BasicTinUI):
 
     def toggle_ask_url(self, tag):
         data.settings['ask_url'] = tag
+        save_settings()
+    
+    def toggle_show_weekday(self, tag):
+        data.settings['show_weekday'] = tag
         save_settings()
     
     def toggle_case_sensitive(self, tag):

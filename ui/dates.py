@@ -4,6 +4,7 @@
 from tkinter import Text
 from tkinter.colorchooser import askcolor
 from typing import List
+import datetime
 from tinui import BasicTinUI, ExpandPanel, VerticalPanel, HorizonPanel, show_error
 from tinui.theme.tinuilight import TinUILight
 from tinuitreeview import TinUITreeView, TinUITreeItem, tvdark, tvlight
@@ -159,7 +160,11 @@ class DatesView(BasicTinUI):
                 if self.diary:
                     save_one_diary(self.format)
                 self.diary = diary
-                self.itemconfig(self.title, text=self.diary)
+                date = self.diary
+                if data.settings['show_weekday']:
+                    weekday = datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%A')
+                    date += f' {weekday}'
+                self.itemconfig(self.title, text=date)
                 nowday = load_one_diary(diary)
                 if nowday.format:
                     self.mdf_check_funcs.on()

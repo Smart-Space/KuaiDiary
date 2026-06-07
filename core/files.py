@@ -296,17 +296,22 @@ def export_month(month:str) -> str:
         return ""
     year, month = month.split("-")
     _month = month.lstrip("0")
+    flag_weekday = data.settings['show_weekday']
     for day in days:
         file_path, formatted = _resolve_diary_file(month_dir, day)
         if not file_path:
             continue
+        if flag_weekday:
+            weekday = datetime.datetime.strptime(f"{year}-{month}-{day}", "%Y-%m-%d").strftime('%A')
+        else:
+            weekday = ""
         _day = day.lstrip("0")
         if not formatted:
             with open(file_path, "r", encoding="utf-8") as f:
                 contents = f.read()
         else:
             contents = _load_mdf2md(file_path)
-        result = format.replace('{year}', year).replace('{month}', month).replace('{-month}', _month).replace('{day}', day).replace('{-day}', _day).replace('{content}', contents)
+        result = format.replace('{year}', year).replace('{month}', month).replace('{-month}', _month).replace('{day}', day).replace('{-day}', _day).replace('{weekday}', weekday).replace('{content}', contents)
         results.append(result)
     return separator+separator.join(results)+separator
 

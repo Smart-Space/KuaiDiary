@@ -34,8 +34,11 @@
 			<paragraph text='字体大小          '>font_size</paragraph>
 			<scalebar data="(10,11,12,13,14,15,16,17,18,19,20,21,22,23,24)" command='self.funcs["change_font_size"]'>font_scale</scalebar>
 		</line>
-		<line>
+		<line pady='10'>
 			<checkbutton text='打开URL前询问' command='self.funcs["toggle_ask_url"]'>ask_url_checkbutton</checkbutton>
+		</line>
+		<line>
+			<checkbutton text='显示星期' command='self.funcs["toggle_show_weekday"]'>show_weekday_checkbutton</checkbutton>
 		</line>
 	</line>
 	<line>
