@@ -6,7 +6,8 @@ from tkinter import Text, Entry
 from tkinter.filedialog import askdirectory
 from tkinter.font import families
 
-from tinui import BasicTinUI, TinUIXml, show_info, ask_choice
+from tinui import BasicTinUI, show_info, ask_choice, ExpandPanel, HorizonPanel, VerticalPanel, PanelSash
+from tinui.TinUI import TinUIXmlFunc
 from tinui.theme.tinuilight import TinUILight
 
 import data
@@ -21,14 +22,7 @@ class SettingView(BasicTinUI):
         super().__init__(master)
         self.set_scale(data.factory)
         self.ui = theme(self)
-        self.uixml = TinUIXml(self.ui)
         self.init_ui()
-        bbox = [*self.bbox('all')]
-        bbox[0] -= 5
-        bbox[1] -= 5
-        bbox[2] += 5
-        bbox[3] += 5
-        self.config(scrollregion=bbox)
         self.bind('<MouseWheel>', self.on_mousewheel)
         self.theme = data.settings['theme']
     
@@ -40,95 +34,195 @@ class SettingView(BasicTinUI):
             rbg = '#F5F5F5'
             rfg = '#1B1B1B'
             ibg = '#000000'
+            self.all_bg = '#F9F9F9'
+            self.all_line = '#e5e5e5'
         else:
             rbg = "#2A2A2A"
             rfg = '#F5F5F5'
             ibg = '#E0E0E0'
-        self.uixml.funcs.update({
-            'open_github': self.open_github,
-            'open_gitee': self.open_gitee,
-            'apply_export_setting': self.apply_export_setting,
-            'about_export_setting': self.about_export_setting,
-            'select_storage_path': self.select_storage_path,
-            'open_storage_path': self.open_storage_path,
-            'about_storage_path': self.about_storage_path,
-            'select_img_path': self.select_img_path,
-            'open_img_path': self.open_img_path,
-            'about_img_path': self.about_img_path,
-            'change_theme': self.change_theme,
-            'change_window_action': self.change_window_action,
-            'toggle_ask_url': None,
-            'select_font': self.select_font,
-            'change_font_size': None,
-            'toggle_case_sensitive': None,
-            'toggle_reverse_sort': None,
-            'toggle_show_weekday': None
-        })
-        with open("./assets/settingui.xml", "r", encoding="utf-8") as f:
-            xml = f.read().replace("%VERSION%", data.version)
-        self.uixml.loadxml(xml)
+            self.all_bg = '#272727'
+            self.all_line = '#1d1d1d'
 
-        # windows
-        self.theme_radiobox = self.uixml.tags['theme_radiobox'][-2]
+        self.root = ExpandPanel(self, padding=(4,4,4,4))
+        vp = VerticalPanel(self, spacing=30)
+        self.root.set_child(vp)
+
+        # about
+        about_panel = HorizonPanel(self, spacing=20, bg=self.all_bg, linew=1, line=self.all_line, padding=(10,10,10,10))
+        vp.add_child(about_panel, 100)
+        about_panel.add_child(self.ui.add_image((0,0), imgfile='./assets/logo.png', state='uniform', width=100, height=100, anchor='w'))
+        about_vp = VerticalPanel(self, spacing=5)
+        about_panel.add_child(about_vp, weight=1)
+        about_vp.add_child(self.ui.add_title((0,0), text=f"快日记 | KuaiDiary {data.version}", anchor='w'), 50)
+        about_vp.add_child(self.ui.add_paragraph((0,0), text='2025-present Smart-Space copyright', width=self.scale_value(300)), 50)
+        about_panel.add_child(self.ui.add_link((0,0), text='GitHub', command=self.open_github, anchor='w')[-1], 70)
+        about_panel.add_child(self.ui.add_link((0,0), text='Gitee', command=self.open_gitee, anchor='w')[-1], 70)
+
+        # window
+        window_panel = VerticalPanel(self, bg=self.all_bg, linew=1, line=self.all_line, padding=(10,10,10,10))
+        vp.add_child(window_panel, 300)
+        window_panel.add_child(self.ui.add_title((0,0), text="界面设置", size=2), 40)
+        window_panel.add_child(PanelSash(window_panel, bg=self.all_line, draggable=False), 2)
+
+        window_panel_hp1 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        window_panel.add_child(window_panel_hp1, 60)
+        window_panel_hp1.add_child(self.ui.add_paragraph((0,0), text='外观 (重启后生效)', anchor='w'), weight=1)
+        self.theme_radiobox, theme_radiobox = self.ui.add_radiobox((0,0), content=('明亮', '暗黑'), command=self.change_theme, anchor='w')[-2:]
         if data.settings['theme'] == 'light':
             self.theme_radiobox.select(0)
         else:
             self.theme_radiobox.select(1)
-        self.win_segmentbutton = self.uixml.tags['win_segmentbutton'][-2]
+        window_panel_hp1.add_child(theme_radiobox)
+        window_panel.add_child(PanelSash(window_panel, bg=self.all_line, draggable=False), 2)
+
+        window_panel_hp2 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        window_panel.add_child(window_panel_hp2, 60)
+        window_panel_hp2.add_child(self.ui.add_paragraph((0,0), text='窗口启动', anchor='w'), weight=1)
+        self.win_segmentbutton, win_segmentbutton = self.ui.add_segmentbutton((0,0), content=('无要求','最大化','居中','上次位置'), command=self.change_window_action, anchor='w')[-2:]
         self.win_segmentbutton.select(data.settings['window_action'])
+        window_panel_hp2.add_child(win_segmentbutton)
+        window_panel.add_child(PanelSash(window_panel, bg=self.all_line, draggable=False), 2)
 
-        self.font_demo = self.uixml.tags['font_demo']
+        window_panel_hp3 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        window_panel.add_child(window_panel_hp3, 60)
+        window_panel_hp3.add_child(self.ui.add_paragraph((0,0), text='编辑字体', anchor='w'))
+        self.font_demo = self.ui.add_paragraph((0,0), text="abc甲乙丙", anchor='w')
+        window_panel_hp3.add_child(self.font_demo, 100)
         self.itemconfig(self.font_demo, font=(data.settings['font_family'], 12))
-        self.font_size = self.uixml.tags['font_size']
-        self.itemconfig(self.font_size, text=f"字体大小 {data.settings['font_size']}pt")
+        window_panel_hp3.add_child(self.ui.add_button2((0,0), text='选择字体', command=self.select_font, anchor='w')[-1])
+        window_panel_hp3.add_child(PanelSash(window_panel_hp3, bg=self.all_line, draggable=False), 2)
+        window_panel_hp3.add_child(self.ui.add_paragraph((0,0), text='字体大小', anchor='w'))
+        self.font_size = self.ui.add_paragraph((0,0), text=f"{data.settings['font_size']}pt", anchor='w')
+        window_panel_hp3.add_child(self.font_size, 50)
         index = data.settings['font_size'] - 10
-        font_scale = self.uixml.tags['font_scale'][-2]
+        change_font_size_func = TinUIXmlFunc(None)
+        font_scale, font_scale_uid = self.ui.add_scalebar((0,0), data=(10,11,12,13,14,15,16,17,18,19,20,21,22,23,24), command=change_font_size_func, anchor='w')[-2:]
         font_scale.select(index)
-        self.uixml.funcs['change_font_size'] = self.change_font_size
+        change_font_size_func.function = self.change_font_size
+        window_panel_hp3.add_child(font_scale_uid)
+        window_panel.add_child(PanelSash(window_panel, bg=self.all_line, draggable=False), 2)
 
-        ask_url_checkbutton = self.uixml.tags['ask_url_checkbutton'][-2]
+        window_panel_hp4 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        window_panel.add_child(window_panel_hp4, 60)
+        toggle_ask_url_func = TinUIXmlFunc(None)
+        ask_url_checkbutton, as_url_checkbutton_uid = self.ui.add_checkbutton((0,0), text='打开URL前询问', command=toggle_ask_url_func, anchor='w')[-2:]
         if data.settings['ask_url']:
             ask_url_checkbutton.on()
-        self.uixml.funcs['toggle_ask_url'] = self.toggle_ask_url
-        
-        show_weekday_checkbutton = self.uixml.tags['show_weekday_checkbutton'][-2]
+        toggle_ask_url_func.function = self.toggle_ask_url
+        window_panel_hp4.add_child(as_url_checkbutton_uid)
+        toggle_show_weekday_func = TinUIXmlFunc(None)
+        show_weekday_checkbutton, show_weekday_checkbutton_uid = self.ui.add_checkbutton((0,0), text='显示星期', command=toggle_show_weekday_func, anchor='w')[-2:]
         if data.settings['show_weekday']:
             show_weekday_checkbutton.on()
-        self.uixml.funcs['toggle_show_weekday'] = self.toggle_show_weekday
+        toggle_show_weekday_func.function = self.toggle_show_weekday
+        window_panel_hp4.add_child(show_weekday_checkbutton_uid)
         
         # storage
-        self.st_entry:Entry = self.uixml.tags['st_entry'][0]
-        st_entry_func = self.uixml.tags['st_entry'][1]
-        st_entry_func.disable(fg=rfg, bg=rbg)
+        storage_panel = VerticalPanel(self, bg=self.all_bg, linew=1, line=self.all_line, padding=(10,10,10,10))
+        vp.add_child(storage_panel, 180)
+        storage_panel.add_child(self.ui.add_title((0,0), text="存储设置", size=2), 40)
+        storage_panel.add_child(PanelSash(storage_panel, bg=self.all_line, draggable=False), 2)
+
+        storage_hp1 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        storage_panel.add_child(storage_hp1, 60)
+        storage_hp1.add_child(self.ui.add_paragraph((0,0), text='存储位置', anchor='w'))
+        self.st_entry:Entry
+        self.st_entry, st_entry_funcs, st_entry_uid = self.ui.add_entry((0,0), width=300, anchor='w')
+        storage_hp1_ep = ExpandPanel(self)
+        storage_hp1_ep.set_child(st_entry_uid)
+        storage_hp1.add_child(storage_hp1_ep, weight=1)
+        storage_hp1.add_child(self.ui.add_button2((0,0), icon='\ue712', text='', command=self.select_storage_path, anchor='w')[-1])
+        storage_hp1.add_child(self.ui.add_button2((0,0), icon='\ue8da', text='', command=self.open_storage_path, anchor='w')[-1])
+        storage_hp1.add_child(self.ui.add_button2((0,0), icon='\ue897', text='', command=self.about_storage_path, anchor='w')[-1])
+        st_entry_funcs.disable(fg=rfg, bg=rbg)
         self.st_entry.config(state="normal", readonlybackground=rbg)
         self.st_entry.insert(0, data.work_dir)
         self.st_entry.config(state="readonly")
 
-        self.img_entry:Entry = self.uixml.tags['img_entry'][0]
-        img_entry_func = self.uixml.tags['img_entry'][1]
-        img_entry_func.disable(fg=rfg, bg=rbg)
+        storage_hp2 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        storage_panel.add_child(storage_hp2, 60)
+        storage_hp2.add_child(self.ui.add_paragraph((0,0), text='图片位置', anchor='w'))
+        self.img_entry:Entry
+        self.img_entry, img_entry_funcs, img_entry_uid = self.ui.add_entry((0,0), width=300, anchor='w')
+        storage_hp2_ep = ExpandPanel(self)
+        storage_hp2_ep.set_child(img_entry_uid)
+        storage_hp2.add_child(storage_hp2_ep, weight=1)
+        storage_hp2.add_child(self.ui.add_button2((0,0), icon='\ue712', text='', command=self.select_img_path, anchor='w')[-1])
+        storage_hp2.add_child(self.ui.add_button2((0,0), icon='\ue8da', text='', command=self.open_img_path, anchor='w')[-1])
+        storage_hp2.add_child(self.ui.add_button2((0,0), icon='\ue897', text='', command=self.about_img_path, anchor='w')[-1])
+        img_entry_funcs.disable(fg=rfg, bg=rbg)
         self.img_entry.config(state="normal", readonlybackground=rbg)
         self.img_entry.insert(0, data.img_dir)
         self.img_entry.config(state="readonly")
 
         # format
-        self.fm_text:Text = self.uixml.tags['fm_textbox'][0]
-        self.fm_entry:Entry = self.uixml.tags['fm_entry'][0]
-        self.fm_string = self.uixml.tags['fm_string']
+        export_panel = VerticalPanel(self, bg=self.all_bg, linew=1, line=self.all_line, padding=(10,10,10,10))
+        vp.add_child(export_panel, 400)
+        export_hp_title = HorizonPanel(self, spacing=20, padding=(0,20,0,0))
+        export_panel.add_child(export_hp_title, 40)
+        export_hp_title.add_child(self.ui.add_title((0,0), text="导出设置", size=2), weight=1)
+        export_hp_title.add_child(self.ui.add_button((0,0), text='应用更改', command=self.apply_export_setting)[-1])
+        export_hp_title.add_child(self.ui.add_button2((0,0), icon='\ue897', text='', command=self.about_export_setting)[-1])
+        export_panel.add_child(PanelSash(export_panel, bg=self.all_line, draggable=False), 2)
+
+        export_hp1 = HorizonPanel(self, spacing=20, padding=(10,20,10,10))
+        export_panel.add_child(export_hp1, 280)
+        export_hp1.add_child(self.ui.add_paragraph((0,0), text='导出内容'))
+        exprot_hp1_ep = ExpandPanel(self)
+        export_hp1.add_child(exprot_hp1_ep, weight=1)
+        self.fm_text:Text
+        self.fm_text, _, fm_text_uid = self.ui.add_textbox((0,0), width=225, height=200, scrollbar=True, anchor='w')
+        exprot_hp1_ep.set_child(fm_text_uid)
+        self.fm_string = self.ui.add_paragraph((0,0), text='')
+        export_hp1.add_child(self.fm_string, weight=1)
+        export_panel.add_child(PanelSash(export_panel, bg=self.all_line, draggable=False), 2)
+
+        export_hp2 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        export_panel.add_child(export_hp2, 60)
+        export_hp2.add_child(self.ui.add_paragraph((0,0), text='日记分隔', anchor='w'))
+        self.fm_entry:Entry
+        self.fm_entry, _, fm_entry_uid = self.ui.add_entry((0,0), width=self.scale_value(200), anchor='w')
+        export_hp2.add_child(fm_entry_uid)
+
         self.fm_text.config(insertwidth=1, insertbackground=ibg)
         self.fm_text.insert(1.0, data.settings.get("format_content", ""))
         self.fm_entry.insert(0, data.settings.get("format_sep", ""))
         self.preview_export_format()
 
         # search
-        case_sensitive_checkbutton = self.uixml.tags['case_sensitive_checkbutton'][-2]
+        search_panel = VerticalPanel(self, bg=self.all_bg, linew=1, line=self.all_line, padding=(10,10,10,10))
+        vp.add_child(search_panel, 180)
+        search_panel.add_child(self.ui.add_title((0,0), text="搜索设置", size=2), 40)
+        search_panel.add_child(PanelSash(search_panel, bg=self.all_line, draggable=False), 2)
+
+        search_hp1 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        search_panel.add_child(search_hp1, 60)
+        toggle_case_func = TinUIXmlFunc(None)
+        case_checkbutton, case_checkbutton_uid = self.ui.add_checkbutton((0,0), text='区分大小写', command=toggle_case_func, anchor='w')[-2:]
         if data.settings['case_sensitive']:
-            case_sensitive_checkbutton.on()
-        self.reverse_sort_checkbutton = self.uixml.tags['reverse_sort_checkbutton'][-2]
+            case_checkbutton.on()
+        toggle_case_func.function = self.toggle_case_sensitive
+        search_hp1.add_child(case_checkbutton_uid)
+
+        search_hp2 = HorizonPanel(self, spacing=20, padding=(0,20,0,10))
+        search_panel.add_child(search_hp2, 60)
+        toggle_reverse_func = TinUIXmlFunc(None)
+        reverse_checkbutton, reverse_checkbutton_uid = self.ui.add_checkbutton((0,0), text='逆时间顺序排序', command=toggle_reverse_func, anchor='w')[-2:]
         if data.settings['reverse_sort']:
-            self.reverse_sort_checkbutton.on()
-        self.uixml.funcs['toggle_case_sensitive'] = self.toggle_case_sensitive
-        self.uixml.funcs['toggle_reverse_sort'] = self.toggle_reverse_sort
+            reverse_checkbutton.on()
+        toggle_reverse_func.function = self.toggle_reverse_sort
+        search_hp2.add_child(reverse_checkbutton_uid)
+
+        self.bind("<Configure>", self.on_resize)
+    
+    def on_resize(self, event):
+        self.root.update_layout(event.x, event.y, event.width-1, self.scale_value(2000))
+        bbox = [*self.bbox('all')]
+        bbox[0] -= 5
+        bbox[1] -= 5
+        bbox[2] += 5
+        bbox[3] += 5
+        self.config(scrollregion=bbox)
     
     def open_github(self, _):
         webbrowser.open("https://github.com/Smart-Space/KuaiDiary")
@@ -225,7 +319,7 @@ class SettingView(BasicTinUI):
     def change_font_size(self, size):
         data.settings['font_size'] = size
         save_settings()
-        self.itemconfig(self.font_size, text=f"字体大小 {size}pt")
+        self.itemconfig(self.font_size, text=f"{size}pt")
         data.today_editor.config_new_font_family(data.settings['font_family'], data.settings['font_size'])
         data.dates_editor.config_new_font_family(data.settings['font_family'], data.settings['font_size'])
 

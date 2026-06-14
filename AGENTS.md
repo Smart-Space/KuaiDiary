@@ -6,10 +6,7 @@
 
 ## Linting & Type Checking
 
-No explicit linting or type checking configuration found. If adding, consider:
-- `pylint` or `ruff` for linting
-- `mypy` for type checking
-
+No explicit linting or type checking configuration found.
 ## Code Style Guidelines
 
 ### General Conventions
@@ -79,12 +76,14 @@ KuaiDiary/
 │   ├── today.py         # Today's diary view
 │   ├── dates.py         # Past dates view
 │   ├── export.py        # Export functionality
-│   └── setting.py       # Settings UI
+│   ├── setting.py       # Settings UI
+│   └── search.py        # Searching UI
 ├── control/             # Controllers/helpers
 │   ├── editor.py        # Editor configuration
 │   ├── dates_diary.py
 │   ├── settings.py
-│   └── today_diary.py
+│   ├── today_diary.py
+│   └── search.py
 ├── datas/               # Diary storage (runtime created)
 └── settings/            # Settings storage
 ```
@@ -100,6 +99,7 @@ KuaiDiary/
 
 - Plain text files in `./datas/`
 - Directory structure: `./datas/YYYY-MM/DD`
+- Search database in `./datas/.search_index.db`
 - UTF-8 encoding for all files
 - Auto-save on close
 
