@@ -16,6 +16,23 @@ from core.settings import save_settings
 from core.image_db import image_db
 from control.search import search_engine
 
+def _apply_dark_titlebar(window):
+    # Windows暗色标题栏
+    import sys
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+        hwnd = ctypes.windll.user32.GetParent(window.winfo_id())
+        value = ctypes.c_int(1)
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(
+            hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE,
+            ctypes.byref(value), ctypes.sizeof(value)
+        )
+    except Exception:
+        pass
+
 class MainWindow(Tk):
 
     def __init__(self):
@@ -34,6 +51,10 @@ class MainWindow(Tk):
         self.ui_.set_scale(data.factory)
         self.ui_.pack(fill="both", expand=True)
         self.ui = self.theme(self.ui_)
+
+        # 深色主题时启用 Windows 深色标题栏
+        if data.settings.get("theme") == "dark":
+            _apply_dark_titlebar(self)
         
         window_action = data.settings.get('window_action', 0)
         if window_action == 1:
