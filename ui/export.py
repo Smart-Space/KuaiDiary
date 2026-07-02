@@ -37,6 +37,15 @@ class ExportView(BasicTinUI):
         else:
             all_bg = '#272727'
             all_line = '#1d1d1d'
+        if data.months:
+            first_month = next(reversed(data.months))
+            last_month = next(iter(data.months))
+            min_year = int(first_month.split('-')[0])
+            max_year = int(last_month.split('-')[0])
+            picker_year_range = (min_year, max_year)
+        else:
+            now_year = datetime.date.today().year
+            picker_year_range = (now_year, now_year)
         picker_colors = pickerlight if data.settings['theme'] == 'light' else pickerdark
         self.root = ExpandPanel(self)
 
@@ -47,11 +56,11 @@ class ExportView(BasicTinUI):
         vp.add_child(hp1, 60)
         hp1.add_child(self.ui.add_back((0,0)), weight=1)
         hp1.add_child(self.ui.add_paragraph((0,0), text='开始日期', anchor='center'))
-        self.start_datepicker = TinUIDatePicker(self, (0,0), font=('Segoe UI', 12), now=self.temp_start, command=self.set_start_date, anchor='w', **picker_colors)
+        self.start_datepicker = TinUIDatePicker(self, (0,0), font=('Segoe UI', 12), year_range=picker_year_range, now=self.temp_start, command=self.set_start_date, anchor='w', **picker_colors)
         hp1.add_child(self.start_datepicker.uid)
         hp1.add_child(self.ui.add_back((0,0)), 20)
         hp1.add_child(self.ui.add_paragraph((0,0),text='结束年份', anchor='center'))
-        self.end_datepicker = TinUIDatePicker(self, (0,0), font=('Segoe UI', 12), now=self.temp_end, command=self.set_end_date, anchor='w', **picker_colors)
+        self.end_datepicker = TinUIDatePicker(self, (0,0), font=('Segoe UI', 12), year_range=picker_year_range, now=self.temp_end, command=self.set_end_date, anchor='w', **picker_colors)
         hp1.add_child(self.end_datepicker.uid)
         hp1.add_child(self.ui.add_back((0,0)), weight=1)
 
