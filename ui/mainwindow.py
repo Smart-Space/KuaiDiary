@@ -3,6 +3,7 @@ KuaiDiary主窗口
 """
 from datetime import date
 from tkinter import Tk
+from threading import Thread
 
 from tinui import BasicTinUI, ExpandPanel, HorizonPanel
 
@@ -99,16 +100,20 @@ class MainWindow(Tk):
         self.ui_.bind("<Configure>", self.on_resize)
 
         self.now_view = self.today_view = TodayView(self.child[0], self.theme)
+        self.setting_view = None
+        Thread(target=self._init_setting_view).start() # 设置视图初始化较慢，放到线程中初始化
         self.dates_view = DatesView(self.child[0], self.theme)
         self.export_view = ExportView(self.child[0], self.theme)
         self.search_view = SearchView(self.child[0], self.theme)
-        self.setting_view = SettingView(self.child[0], self.theme)
         self.now_view.pack(fill="both", expand=True)
 
-        self.after(100, self.today_view.load_diary)
+        self.after(10, self.today_view.load_diary)
 
         self.ui_.event_generate("<Configure>", x=0, y=0, width=self.ui_.winfo_width(), height=self.ui_.winfo_height())
     
+    def _init_setting_view(self):
+        self.setting_view = SettingView(self.child[0], self.theme)
+
     def open_diary(self, _):
         diary_date = data.req_open_dairy
         if date.today().strftime("%Y-%m-%d") == f"{diary_date[0]}-{diary_date[1]}":
