@@ -21,7 +21,7 @@ class ExportView(BasicTinUI):
         self.set_scale(data.factory)
         self.start = None
         self.end = None
-        self.temp_start = datetime.date.today()
+        self.temp_start = datetime.date.today().replace(day=1) # 本月一日
         self.temp_end = datetime.date.today()
         self.sep_year = False
         self.sep_month = False
