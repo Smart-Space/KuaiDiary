@@ -325,7 +325,14 @@ class SettingView(BasicTinUI):
 
     def select_font(self, _):
         all_fonts = sorted(list(families()))
-        font = ask_choice(self.master, "选择字体", "请选择字体", all_fonts, height=400, theme=self.theme)
+        remove_index = -1
+        for i in all_fonts:
+            if i.startswith("@"):
+                remove_index += 1
+            else:
+                break
+        all_fonts = all_fonts[remove_index+1:]
+        font = ask_choice(self.master, "选择字体", "", all_fonts, height=500, theme=self.theme)
         if font:
             data.settings['font_family'] = font
             save_settings()

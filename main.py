@@ -71,10 +71,6 @@ init_work_dir()
 threading.Thread(target=search_engine.ensure_index).start() # 启动时构建搜索索引
 image_db.init_db()
 threading.Thread(target=start_server, daemon=True).start()
-import time
-start = time.time()
 mainwindow.init_ui()
-end = time.time()
-print(f"UI初始化耗时: {end - start:.2f}秒")
 
 mainwindow.mainloop()
