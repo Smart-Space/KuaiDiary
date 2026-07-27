@@ -93,18 +93,19 @@ class MainWindow(Tk):
         hp1.add_child(self.nav[-1])
 
         ep = ExpandPanel(self.ui_)
-        self.child = self.ui_.add_ui((0,0), content=False)
-        ep.set_child(self.child[-1])
+        child = self.ui_.add_ui((0,0), content=False)
+        self.childui = child[0]
+        ep.set_child(child[-1])
         hp1.add_child(ep, weight=1)
 
         self.ui_.bind("<Configure>", self.on_resize)
 
-        self.now_view = self.today_view = TodayView(self.child[0], self.theme)
+        self.now_view = self.today_view = TodayView(self.childui, self.theme)
         self.setting_view = None
         Thread(target=self._init_setting_view).start() # 设置视图初始化较慢，放到线程中初始化
-        self.dates_view = DatesView(self.child[0], self.theme)
-        self.export_view = ExportView(self.child[0], self.theme)
-        self.search_view = SearchView(self.child[0], self.theme)
+        self.dates_view = DatesView(self.childui, self.theme)
+        self.export_view = ExportView(self.childui, self.theme)
+        self.search_view = SearchView(self.childui, self.theme)
         self.now_view.pack(fill="both", expand=True)
 
         self.after(10, self.today_view.load_diary)
@@ -112,7 +113,9 @@ class MainWindow(Tk):
         self.ui_.event_generate("<Configure>", x=0, y=0, width=self.ui_.winfo_width(), height=self.ui_.winfo_height())
     
     def _init_setting_view(self):
-        self.setting_view = SettingView(self.child[0], self.theme)
+        self.setting_view = SettingView(self.childui, self.theme)
+        scrollbar = self.childui.add_scrollbar((-500,-500), self.setting_view)[-1] # 用于设置界面平滑滚动
+        self.childui.itemconfig(scrollbar, state='hidden')
 
     def open_diary(self, _):
         diary_date = data.req_open_dairy

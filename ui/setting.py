@@ -23,11 +23,7 @@ class SettingView(BasicTinUI):
         self.set_scale(data.factory)
         self.ui = theme(self)
         self.init_ui()
-        self.bind('<MouseWheel>', self.on_mousewheel)
         self.theme = data.settings['theme']
-    
-    def on_mousewheel(self, event):
-        self.yview_scroll(int(-1*(event.delta/120)), "units")
     
     def init_ui(self):
         if data.settings['theme'] == 'light':
@@ -128,6 +124,7 @@ class SettingView(BasicTinUI):
         storage_hp1.add_child(self.ui.add_paragraph((0,0), text='存储位置', anchor='w'))
         self.st_entry:Entry
         self.st_entry, st_entry_funcs, st_entry_uid = self.ui.add_entry((0,0), width=300, anchor='w')
+        self.st_entry.bind("<MouseWheel>", lambda event: self.event_generate("<MouseWheel>", state=event.state, delta=event.delta))
         storage_hp1_ep = ExpandPanel(self)
         storage_hp1_ep.set_child(st_entry_uid)
         storage_hp1.add_child(storage_hp1_ep, weight=1)
@@ -144,6 +141,7 @@ class SettingView(BasicTinUI):
         storage_hp2.add_child(self.ui.add_paragraph((0,0), text='图片位置', anchor='w'))
         self.img_entry:Entry
         self.img_entry, img_entry_funcs, img_entry_uid = self.ui.add_entry((0,0), width=300, anchor='w')
+        self.img_entry.bind("<MouseWheel>", lambda event: self.event_generate("<MouseWheel>", state=event.state, delta=event.delta))
         storage_hp2_ep = ExpandPanel(self)
         storage_hp2_ep.set_child(img_entry_uid)
         storage_hp2.add_child(storage_hp2_ep, weight=1)
@@ -182,6 +180,7 @@ class SettingView(BasicTinUI):
         export_hp2.add_child(self.ui.add_paragraph((0,0), text='日记分隔', anchor='w'))
         self.fm_entry:Entry
         self.fm_entry, _, fm_entry_uid = self.ui.add_entry((0,0), width=self.scale_value(200), anchor='w')
+        self.fm_entry.bind("<MouseWheel>", lambda event: self.event_generate("<MouseWheel>", state=event.state, delta=event.delta))
         export_hp2.add_child(fm_entry_uid)
 
         self.fm_text.config(insertwidth=1, insertbackground=ibg)
